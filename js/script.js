@@ -77,7 +77,6 @@ document.addEventListener("DOMContentLoaded", () => {
       cards.push(card);
     });
   }
-
   // Flip card function
   function flipCard() {
     if (lockBoard) return;

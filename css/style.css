@@ -1,4 +1,4 @@
- <style>
+
     /* Custom smooth transitions & card 3D effect */
     * {
       margin: 0;
@@ -194,4 +194,4 @@
       backdrop-filter: blur(4px);
       transition: all 0.2s;
     }
-  </style>
+  

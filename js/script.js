@@ -1,4 +1,4 @@
-<script src="js/script.js">
+
 
     // ---------- GAME STATE ----------
     let currentDifficulty = 'easy';    // 'easy', 'medium', 'hard'
@@ -370,4 +370,4 @@
       // extra responsive fix: ensure grid fits
     });
 
-  </script>
+  

@@ -9,6 +9,203 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Custom smooth transitions & card 3D effect */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  transition: background-color 0.3s ease, color 0.2s ease;
+}
+
+/* Dark mode overrides (applied via .dark-mode class on body) */
+body.dark-mode {
+  background: linear-gradient(135deg, #0f172a, #1e1a2f) !important;
+}
+
+body.dark-mode .game-container-card {
+  background-color: rgba(30, 41, 59, 0.9);
+  backdrop-filter: blur(4px);
+}
+
+body.dark-mode .stat-panel {
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #f1f5f9;
+}
+
+body.dark-mode .card-back {
+  background: linear-gradient(145deg, #334155, #1e293b);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .difficulty-btn {
+  background: #1e293b;
+  color: #cbd5e1;
+  border-color: #475569;
+}
+
+body.dark-mode .difficulty-btn.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+body.dark-mode .restart-btn {
+  background: #334155;
+  color: #e2e8f0;
+}
+
+body.dark-mode .win-modal-content {
+  background: #1e293b;
+  color: #f1f5f9;
+}
+
+.card {
+  perspective: 1200px;
+  transform-style: preserve-3d;
+  cursor: pointer;
+  aspect-ratio: 1 / 1;
+  transition: all 0.2s ease;
+}
+
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.45s cubic-bezier(0.23, 1, 0.32, 1);
+  border-radius: 1rem;
+}
+
+.card.flipped .card-inner {
+  transform: rotateY(180deg);
+}
+
+.card-front,
+.card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card-front {
+  background: linear-gradient(145deg, #facc15, #f97316);
+  transform: rotateY(180deg);
+  color: #2d2b1f;
+  font-weight: bold;
+}
+
+.card-back {
+  background: linear-gradient(145deg, #ffffff, #f3f4f6);
+  transform: rotateY(0deg);
+  border: 2px solid rgba(59, 130, 246, 0.3);
+}
+
+body.dark-mode .card-front {
+  background: linear-gradient(145deg, #eab308, #d97706);
+  color: #0f172a;
+}
+
+.card.matched {
+  opacity: 0.65;
+  cursor: default;
+  filter: grayscale(0.1);
+  transform: scale(0.97);
+  transition: all 0.2s;
+}
+
+.card.matched .card-front {
+  animation: matchPulse 0.5s ease;
+}
+
+@keyframes matchPulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 15px gold;
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Responsive grid adjustments */
+.game-grid {
+  display: grid;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+/* dynamic grid columns based on difficulty */
+.grid-easy {
+  grid-template-columns: repeat(4, minmax(70px, 95px));
+}
+
+.grid-medium {
+  grid-template-columns: repeat(4, minmax(70px, 90px));
+}
+
+.grid-hard {
+  grid-template-columns: repeat(6, minmax(70px, 85px));
+}
+
+@media (max-width: 640px) {
+
+  .grid-easy,
+  .grid-medium {
+    grid-template-columns: repeat(4, minmax(65px, 80px));
+  }
+
+  .grid-hard {
+    grid-template-columns: repeat(4, minmax(70px, 85px));
+  }
+}
+
+@media (min-width: 768px) {
+  .grid-easy {
+    grid-template-columns: repeat(4, minmax(90px, 110px));
+  }
+
+  .grid-medium {
+    grid-template-columns: repeat(4, minmax(100px, 120px));
+  }
+
+  .grid-hard {
+    grid-template-columns: repeat(6, minmax(85px, 105px));
+  }
+}
+
+.difficulty-btn {
+  transition: all 0.2s;
+  border-width: 1px;
+}
+
+.difficulty-btn.active {
+  background: #3b82f6;
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.stat-panel {
+  backdrop-filter: blur(4px);
+  transition: all 0.2s;
+}
+  </style>
 </head>
 
 <body

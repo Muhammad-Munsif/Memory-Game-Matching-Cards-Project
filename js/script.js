@@ -1,4 +1,4 @@
-  <script>
+
     // ======================== GAME STATE ========================
     let currentDifficulty = 'easy';
     const levelOrder = ['easy', 'medium', 'hard'];
@@ -334,4 +334,3 @@
     currentDifficulty = 'easy';
     updateDifficultyButtonActive('easy');
     buildBoard();
-  </script>

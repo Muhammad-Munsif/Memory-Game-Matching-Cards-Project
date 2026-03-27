@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Memory Odyssey | Progressive Memory Game</title>
+  <!-- Tailwind + Font Awesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    /* ========== CUSTOM STYLES ========== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      transition: background-color 0.4s ease, color 0.3s ease;
+      font-family: system-ui, 'Segoe UI', 'Poppins', sans-serif;
+    }
+
+    /* Dark mode overrides */
+    body.dark-mode {
+      background: linear-gradient(135deg, #0a0f2a, #141b3b, #1e1a3a) !important;
+    }
+
+    body.dark-mode .stat-panel {
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    body.dark-mode .card-back {
+      background: linear-gradient(145deg, #2d3a4e, #1e2a3a);
+      border: 1px solid rgba(255, 215, 0, 0.2);
+    }
+
+    body.dark-mode .card-front {
+      background: linear-gradient(145deg, #fbbf24, #f59e0b);
+      color: #1e1a2f;
+    }
+
+    body.dark-mode .difficulty-btn {
+      background: #1e293b;
+      color: #cbd5e6;
+      border: 1px solid #475569;
+    }
+
+    body.dark-mode .difficulty-btn.active {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      border-color: #a855f7;
+      box-shadow: 0 0 12px rgba(139, 92, 246, 0.5);
+    }
+
+    body.dark-mode .restart-btn {
+      background: #2d3a4e;
+      color: #f1f5f9;
+    }
+
+    body.dark-mode .win-modal-content {
+      background: linear-gradient(145deg, #1e293b, #0f172a);
+      color: #f1f5f9;
+    }
+
+    body.dark-mode .next-level-card {
+      background: #0f172a;
+    }
+
+    /* Card 3D Flip */
+    .card {
+      perspective: 1200px;
+      cursor: pointer;
+      aspect-ratio: 1 / 1;
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: scale(1.02);
+    }
+
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+      border-radius: 1.2rem;
+    }
+
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-front,
+    .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-front {
+      background: linear-gradient(145deg, #ffd966, #ffb347);
+      transform: rotateY(180deg);
+      color: #2c2b1f;
+      font-weight: bold;
+    }
+
+    .card-back {
+      background: linear-gradient(145deg, #ffffff, #f8fafc);
+      transform: rotateY(0deg);
+      border: 2px solid rgba(59, 130, 246, 0.4);
+    }
+
+    .card.matched {
+      opacity: 0.6;
+      cursor: default;
+      filter: drop-shadow(0 0 6px gold);
+      transform: scale(0.96);
+      transition: all 0.2s;
+    }
+
+    .card.matched .card-front {
+      animation: matchGlow 0.5s ease;
+    }
+
+    @keyframes matchGlow {
+      0% {
+        transform: scale(1);
+        filter: brightness(1);
+      }
+
+      50% {
+        transform: scale(1.08);
+        filter: brightness(1.2);
+        text-shadow: 0 0 8px gold;
+      }
+
+      100% {
+        transform: scale(1);
+        filter: brightness(1);
+      }
+    }
+
+    /* Responsive Grids */
+    .game-grid {
+      display: grid;
+      gap: 0.8rem;
+      justify-content: center;
+      margin: 1rem 0;
+    }
+
+    .grid-easy {
+      grid-template-columns: repeat(4, minmax(80px, 105px));
+    }
+
+    .grid-medium {
+      grid-template-columns: repeat(4, minmax(80px, 105px));
+    }
+
+    .grid-hard {
+      grid-template-columns: repeat(6, minmax(75px, 95px));
+    }
+
+    @media (max-width: 640px) {
+
+      .grid-easy,
+      .grid-medium {
+        grid-template-columns: repeat(4, minmax(70px, 85px));
+        gap: 0.6rem;
+      }
+
+      .grid-hard {
+        grid-template-columns: repeat(4, minmax(75px, 90px));
+        gap: 0.6rem;
+      }
+
+      .card-front,
+      .card-back {
+        font-size: 1.6rem;
+      }
+    }
+
+    @media (min-width: 768px) {
+      .grid-easy {
+        grid-template-columns: repeat(4, minmax(100px, 120px));
+      }
+
+      .grid-medium {
+        grid-template-columns: repeat(4, minmax(105px, 125px));
+      }
+
+      .grid-hard {
+        grid-template-columns: repeat(6, minmax(90px, 110px));
+      }
+    }
+
+    .difficulty-btn {
+      transition: all 0.25s;
+      font-weight: 700;
+      backdrop-filter: blur(4px);
+    }
+
+    .difficulty-btn.active {
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      color: white;
+      transform: scale(1.02);
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    .stat-panel {
+      backdrop-filter: blur(8px);
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 1.2rem;
+      transition: all 0.2s;
+    }
+
+    /* Win modal & animations */
+    .modal-pop {
+      animation: modalFadeIn 0.3s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    /* Celebrate effect */
+    .celebrate-badge {
+      background: linear-gradient(135deg, #ffd89b, #c7e9fb);
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    /* Star rating pulse */
+    .star-rating i {
+      transition: transform 0.2s;
+    }
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex flex-col items-center justify-center p-3 md:p-5 transition-colors duration-300">
+
+  <div class="w-full max-w-6xl mx-auto">
+    <!-- Header with Theme Toggle & Stats -->
+    <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
+      <h1 class="text-3xl md:text-5xl font-extrabold text-white drop-shadow-xl flex items-center gap-3">
+        <i class="fa-solid fa-brain text-yellow-300 animate-pulse"></i> 
+        <span class="bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-orange-200">Memory Odyssey</span>
+      </h1>
+      <button id="themeToggle" class="bg-white/30 backdrop-blur-md text-white rounded-full w-12 h-12 flex items-center justify-center text-xl hover:bg-white/50 hover:scale-105 transition-all shadow-xl">
+        <i id="themeIcon" class="fas fa-moon"></i>
+      </button>
+    </div>
+
+    <!-- Difficulty Section with visual badges -->
+    <div class="flex flex-wrap justify-center gap-3 mb-5 bg-white/20 backdrop-blur-lg p-3 rounded-2xl shadow-lg">
+      <button data-diff="easy" class="difficulty-btn px-6 py-2.5 rounded-full font-bold bg-white/90 text-indigo-800 shadow-md transition-all active">
+        🌱 EASY <span class="text-xs ml-1">(3x4)</span>
+      </button>
+      <button data-diff="medium" class="difficulty-btn px-6 py-2.5 rounded-full font-bold bg-white/90 text-indigo-800 shadow-md transition-all">
+        ⚡ MEDIUM <span class="text-xs ml-1">(4x4)</span>
+      </button>
+      <button data-diff="hard" class="difficulty-btn px-6 py-2.5 rounded-full font-bold bg-white/90 text-indigo-800 shadow-md transition-all">
+        🔥 HARD <span class="text-xs ml-1">(4x6)</span>
+      </button>
+    </div>
+
+    <!-- Stats & Control Panel -->
+    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+      <div class="flex gap-4 flex-wrap justify-center">
+        <div class="stat-panel px-5 py-2.5 text-white font-bold shadow-lg flex items-center gap-2">
+          <i class="fas fa-hand-peace text-yellow-200"></i>
+          <span>MOVES: <span id="moves" class="text-xl">0</span></span>
+        </div>
+        <div class="stat-panel px-5 py-2.5 text-white font-bold shadow-lg flex items-center gap-2">
+          <i class="fas fa-hourglass-half text-yellow-200"></i>
+          <span>TIME: <span id="time" class="text-xl">0s</span></span>
+        </div>
+        <div class="stat-panel px-5 py-2.5 text-white font-bold shadow-lg flex items-center gap-2">
+          <i class="fas fa-layer-group text-yellow-200"></i>
+          <span>LEVEL: <span id="levelIndicator" class="text-xl">1/3</span></span>
+        </div>
+        <div class="stat-panel px-5 py-2.5 text-white font-bold shadow-lg flex items-center gap-2">
+          <i class="fas fa-star text-yellow-200"></i>
+          <span>PAIRS: <span id="pairsMatched">0</span>/<span id="totalPairsSpan">0</span></span>
+        </div>
+      </div>
+      <button id="restartBtn" class="restart-btn bg-white text-indigo-700 hover:bg-indigo-100 font-bold py-2.5 px-7 rounded-xl shadow-lg transition-all flex items-center gap-2">
+        <i class="fas fa-arrows-rotate"></i> Restart
+      </button>
+    </div>
+
+    <!-- Game Board Container -->
+    <div id="game-board" class="game-grid flex justify-center"></div>
+
+    <!-- Win Modal (Progression) -->
+    <div id="win-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 transition-all">
+      <div class="win-modal-content bg-white rounded-2xl p-8 max-w-md w-full mx-4 text-center shadow-2xl transform transition-all modal-pop">
+        <div class="text-6xl mb-3">🏆</div>
+        <h2 class="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400 mb-2">Level Complete!</h2>
+        <div class="bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 rounded-xl p-3 my-3">
+          <p class="text-lg">✨ <strong id="finalMovesSpan">0</strong> moves &nbsp;|&nbsp; ⏱️ <strong id="finalTimeSpan">0s</strong></p>
+        </div>
+        <div id="nextLevelInfo" class="mb-5 text-md font-medium text-gray-700 dark:text-gray-300"></div>
+        <button id="nextLevelBtn" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg w-full flex items-center justify-center gap-2">
+          <i class="fas fa-arrow-right"></i> Next Level
+        </button>
+        <button id="cancelModalBtn" class="mt-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 text-sm">Continue Playing</button>
+      </div>
+    </div>
+
+    <!-- Final Victory Modal (All levels done) -->
+    <div id="victory-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50">
+      <div class="bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-gray-800 dark:to-gray-900 rounded-2xl p-8 max-w-md w-full text-center shadow-2xl modal-pop">
+        <i class="fas fa-crown text-6xl text-yellow-500 mb-3 animate-bounce"></i>
+        <h2 class="text-3xl font-black text-purple-700 dark:text-purple-300">🏆 GRAND MASTER 🏆</h2>
+        <p class="text-xl my-3">You conquered all 3 dimensions!</p>
+        <div class="flex justify-center gap-2 text-2xl my-2">⭐⭐⭐⭐⭐</div>
+        <p class="mb-4 text-gray-600 dark:text-gray-300">Incredible memory skills unlocked ✨</p>
+        <button id="fullResetBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl mt-2 w-full transition flex items-center justify-center gap-2">
+          <i class="fas fa-play"></i> Play Again from Easy
+        </button>
+      </div>
+    </div>
+
+    <!-- Toast Message for small alerts -->
+    <div id="toastMsg" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-5 py-2 rounded-full text-sm opacity-0 transition-all duration-300 pointer-events-none z-50"></div>
+  </div>
+
+  <script>
+    // ======================== GAME STATE ========================
+    let currentDifficulty = 'easy';
+    const levelOrder = ['easy', 'medium', 'hard'];
+    let currentLevelIndex = 0;
+
+    let cardsArray = [];
+    let hasFlippedCard = false;
+    let lockBoard = false;
+    let firstCard, secondCard;
+    let moves = 0;
+    let timerInterval = null;
+    let secondsElapsed = 0;
+    let matchedCount = 0;
+    let totalPairs = 0;
+    let gameActive = true;
+
+    // DOM elements
+    const gameBoard = document.getElementById("game-board");
+    const movesSpan = document.getElementById("moves");
+    const timeSpan = document.getElementById("time");
+    const restartBtn = document.getElementById("restartBtn");
+    const winModal = document.getElementById("win-modal");
+    const victoryModal = document.getElementById("victory-modal");
+    const nextLevelBtn = document.getElementById("nextLevelBtn");
+    const cancelModalBtn = document.getElementById("cancelModalBtn");
+    const finalMovesSpan = document.getElementById("finalMovesSpan");
+    const finalTimeSpan = document.getElementById("finalTimeSpan");
+    const nextLevelInfo = document.getElementById("nextLevelInfo");
+    const levelIndicatorSpan = document.getElementById("levelIndicator");
+    const fullResetBtn = document.getElementById("fullResetBtn");
+    const themeToggle = document.getElementById("themeToggle");
+    const themeIcon = document.getElementById("themeIcon");
+    const pairsMatchedSpan = document.getElementById("pairsMatched");
+    const totalPairsSpan = document.getElementById("totalPairsSpan");
+    const diffBtns = document.querySelectorAll("[data-diff]");
+    const toastMsg = document.getElementById("toastMsg");
+
+    function showToast(message, duration = 1800) {
+      toastMsg.textContent = message;
+      toastMsg.classList.remove("opacity-0");
+      toastMsg.classList.add("opacity-100");
+      setTimeout(() => {
+        toastMsg.classList.remove("opacity-100");
+        toastMsg.classList.add("opacity-0");
+      }, duration);
+    }
+
+    const difficultyConfig = {
+      easy: { rows: 3, cols: 4, totalCards: 12, pairs: 6, gridClass: "grid-easy" },
+      medium: { rows: 4, cols: 4, totalCards: 16, pairs: 8, gridClass: "grid-medium" },
+      hard: { rows: 4, cols: 6, totalCards: 24, pairs: 12, gridClass: "grid-hard" }
+    };
+
+    const emojiLibrary = [
+      "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮",
+      "🐸", "🐵", "🐔", "🐧", "🐦", "🐴", "🦋", "🐝", "🐳", "🐬", "🦄", "🐙",
+      "🍎", "🍒", "🍉", "🍕", "⚽", "🏀", "🎈", "🚀", "🌈", "⭐", "❄️", "🎵", "💎", "🔮"
+    ];
+
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function generateCardData() {
+      const cfg = difficultyConfig[currentDifficulty];
+      const neededPairs = cfg.pairs;
+      let shuffledLib = [...emojiLibrary];
+      shuffledLib = shuffleArray(shuffledLib);
+      const selectedEmojis = shuffledLib.slice(0, neededPairs);
+      let deck = [...selectedEmojis, ...selectedEmojis];
+      deck = shuffleArray(deck);
+      return deck;
+    }
+
+    function updatePairCounter() {
+      pairsMatchedSpan.textContent = matchedCount;
+      totalPairsSpan.textContent = totalPairs;
+    }
+
+    function buildBoard() {
+      gameBoard.innerHTML = "";
+      const cfg = difficultyConfig[currentDifficulty];
+      const deck = generateCardData();
+      totalPairs = cfg.pairs;
+      matchedCount = 0;
+      moves = 0;
+      secondsElapsed = 0;
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = null;
+      movesSpan.textContent = moves;
+      timeSpan.textContent = "0s";
+      updatePairCounter();
+      hasFlippedCard = false;
+      lockBoard = false;
+      firstCard = secondCard = null;
+      gameActive = true;
+
+      gameBoard.className = `game-grid ${cfg.gridClass}`;
+      cardsArray = [];
+
+      deck.forEach((emoji, idx) => {
+        const cardDiv = document.createElement("div");
+        cardDiv.classList.add("card");
+        cardDiv.setAttribute("data-idx", idx);
+        cardDiv.setAttribute("data-emoji", emoji);
+
+        const inner = document.createElement("div");
+        inner.classList.add("card-inner");
+        inner.innerHTML = `
+          <div class="card-front">${emoji}</div>
+          <div class="card-back"><i class="fas fa-question-circle text-3xl text-indigo-300"></i></div>
+        `;
+        cardDiv.appendChild(inner);
+        cardDiv.addEventListener("click", () => handleCardClick(cardDiv));
+        gameBoard.appendChild(cardDiv);
+        cardsArray.push(cardDiv);
+      });
+
+      levelIndicatorSpan.textContent = `${currentLevelIndex + 1}/${levelOrder.length}`;
+    }
+
+    function startTimerIfNeeded() {
+      if (!timerInterval && gameActive && moves === 0) {
+        timerInterval = setInterval(() => {
+          if (gameActive) {
+            secondsElapsed++;
+            timeSpan.textContent = `${secondsElapsed}s`;
+          }
+        }, 1000);
+      }
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+    function resetBoardState() {
+      hasFlippedCard = false;
+      firstCard = null;
+      secondCard = null;
+    }
+
+    function handleCardClick(card) {
+      if (lockBoard || !gameActive) return;
+      if (card.classList.contains("matched")) return;
+      if (card.classList.contains("flipped") && hasFlippedCard && firstCard === card) return;
+
+      startTimerIfNeeded();
+
+      if (!hasFlippedCard) {
+        card.classList.add("flipped");
+        hasFlippedCard = true;
+        firstCard = card;
+        return;
+      }
+
+      secondCard = card;
+      card.classList.add("flipped");
+      moves++;
+      movesSpan.textContent = moves;
+
+      const emoji1 = firstCard.getAttribute("data-emoji");
+      const emoji2 = secondCard.getAttribute("data-emoji");
+      const isMatch = (emoji1 === emoji2);
+
+      if (isMatch) {
+        firstCard.classList.add("matched");
+        secondCard.classList.add("matched");
+        matchedCount++;
+        updatePairCounter();
+        resetBoardState();
+
+        if (matchedCount === totalPairs) {
+          levelComplete();
+        }
+      } else {
+        lockBoard = true;
+        setTimeout(() => {
+          if (firstCard) firstCard.classList.remove("flipped");
+          if (secondCard) secondCard.classList.remove("flipped");
+          resetBoardState();
+          lockBoard = false;
+        }, 750);
+      }
+    }
+
+    function levelComplete() {
+      if (!gameActive) return;
+      gameActive = false;
+      stopTimer();
+      finalMovesSpan.textContent = moves;
+      finalTimeSpan.textContent = `${secondsElapsed}s`;
+
+      const isLastLevel = (currentLevelIndex === levelOrder.length - 1);
+      if (isLastLevel) {
+        nextLevelInfo.innerHTML = "🌟 Legendary! You've dominated every mode! 🌟<br>Claim your final trophy!";
+        nextLevelBtn.innerHTML = '<i class="fas fa-crown mr-2"></i> Claim Victory';
+      } else {
+        const nextLevelName = levelOrder[currentLevelIndex + 1].toUpperCase();
+        const nextPairs = difficultyConfig[levelOrder[currentLevelIndex + 1]].pairs;
+        nextLevelInfo.innerHTML = `🎉 Incredible! Next: <strong>${nextLevelName}</strong> mode with <strong>${nextPairs} pairs</strong>! 🚀`;
+        nextLevelBtn.innerHTML = '<i class="fas fa-arrow-right mr-2"></i> Advance to Next Level';
+      }
+      winModal.classList.remove("hidden");
+    }
+
+    function goToNextLevel() {
+      winModal.classList.add("hidden");
+      if (currentLevelIndex === levelOrder.length - 1) {
+        victoryModal.classList.remove("hidden");
+        return;
+      }
+      currentLevelIndex++;
+      currentDifficulty = levelOrder[currentLevelIndex];
+      updateDifficultyButtonActive(currentDifficulty);
+      resetGameStateForNewLevel();
+      buildBoard();
+      showToast(`✨ Moving to ${currentDifficulty.toUpperCase()} mode! Good luck! ✨`, 2000);
+    }
+
+    function resetGameStateForNewLevel() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = null;
+      hasFlippedCard = false;
+      lockBoard = false;
+      firstCard = null;
+      secondCard = null;
+      gameActive = true;
+    }
+
+    function restartCurrentLevel() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = null;
+      hasFlippedCard = false;
+      lockBoard = false;
+      firstCard = secondCard = null;
+      gameActive = true;
+      buildBoard();
+      winModal.classList.add("hidden");
+      victoryModal.classList.add("hidden");
+      showToast("🔄 Level restarted! Keep going!", 1500);
+    }
+
+    function fullGameReset() {
+      currentLevelIndex = 0;
+      currentDifficulty = levelOrder[0];
+      updateDifficultyButtonActive(currentDifficulty);
+      resetGameStateForNewLevel();
+      buildBoard();
+      victoryModal.classList.add("hidden");
+      winModal.classList.add("hidden");
+      showToast("🌟 Fresh journey! Starting from Easy mode 🌟", 1800);
+    }
+
+    function updateDifficultyButtonActive(diff) {
+      diffBtns.forEach(btn => {
+        const val = btn.getAttribute("data-diff");
+        if (val === diff) btn.classList.add("active");
+        else btn.classList.remove("active");
+      });
+    }
+
+    function setDifficultyAndReset(diff) {
+      if (diff === currentDifficulty && currentLevelIndex === levelOrder.indexOf(diff)) {
+        restartCurrentLevel();
+        return;
+      }
+      currentDifficulty = diff;
+      currentLevelIndex = levelOrder.indexOf(diff);
+      if (currentLevelIndex === -1) currentLevelIndex = 0;
+      updateDifficultyButtonActive(currentDifficulty);
+      resetGameStateForNewLevel();
+      buildBoard();
+      winModal.classList.add("hidden");
+      victoryModal.classList.add("hidden");
+      showToast(`🎮 Switched to ${diff.toUpperCase()} mode. New challenge!`, 1800);
+    }
+
+    // Theme management
+    function initTheme() {
+      const isDark = localStorage.getItem("memoryTheme") === "dark";
+      if (isDark) {
+        document.body.classList.add("dark-mode");
+        themeIcon.classList.remove("fa-moon");
+        themeIcon.classList.add("fa-sun");
+      } else {
+        document.body.classList.remove("dark-mode");
+        themeIcon.classList.remove("fa-sun");
+        themeIcon.classList.add("fa-moon");
+      }
+    }
+
+    function toggleTheme() {
+      if (document.body.classList.contains("dark-mode")) {
+        document.body.classList.remove("dark-mode");
+        localStorage.setItem("memoryTheme", "light");
+        themeIcon.classList.remove("fa-sun");
+        themeIcon.classList.add("fa-moon");
+        showToast("☀️ Light mode activated", 1000);
+      } else {
+        document.body.classList.add("dark-mode");
+        localStorage.setItem("memoryTheme", "dark");
+        themeIcon.classList.remove("fa-moon");
+        themeIcon.classList.add("fa-sun");
+        showToast("🌙 Dark mode activated", 1000);
+      }
+    }
+
+    // Event Listeners
+    restartBtn.addEventListener("click", () => restartCurrentLevel());
+    nextLevelBtn.addEventListener("click", () => goToNextLevel());
+    cancelModalBtn.addEventListener("click", () => winModal.classList.add("hidden"));
+    fullResetBtn.addEventListener("click", () => fullGameReset());
+    themeToggle.addEventListener("click", toggleTheme);
+
+    diffBtns.forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const diff = btn.getAttribute("data-diff");
+        setDifficultyAndReset(diff);
+      });
+    });
+
+    // Initialize
+    initTheme();
+    currentLevelIndex = 0;
+    currentDifficulty = 'easy';
+    updateDifficultyButtonActive('easy');
+    buildBoard();
+  </script>
+</body>
+
+</html>

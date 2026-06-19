@@ -442,199 +442,199 @@
   </div>
 
   <script src="js/script.js">
-    
-(function () {
-  "use strict";
-  // ----- state -----
-  const levelOrder = ['easy', 'medium', 'hard'];
-  let currentLevelIndex = 0;
-  let currentDifficulty = 'easy';
-  let cardsArray = [];
-  let hasFlippedCard = false, lockBoard = false, firstCard = null, secondCard = null;
-  let moves = 0, secondsElapsed = 0, matchedCount = 0, totalPairs = 0;
-  let timerInterval = null, gameActive = true;
 
-  // DOM refs
-  const board = document.getElementById('game-board');
-  const movesSpan = document.getElementById('moves');
-  const timeSpan = document.getElementById('time');
-  const restartBtn = document.getElementById('restartBtn');
-  const winModal = document.getElementById('win-modal');
-  const victoryModal = document.getElementById('victory-modal');
-  const nextBtn = document.getElementById('nextLevelBtn');
-  const cancelBtn = document.getElementById('cancelModalBtn');
-  const finalMoves = document.getElementById('finalMovesSpan');
-  const finalTime = document.getElementById('finalTimeSpan');
-  const nextInfo = document.getElementById('nextLevelInfo');
-  const levelInd = document.getElementById('levelIndicator');
-  const fullResetBtn = document.getElementById('fullResetBtn');
-  const themeToggle = document.getElementById('themeToggle');
-  const themeIcon = document.getElementById('themeIcon');
-  const pairsMatched = document.getElementById('pairsMatched');
-  const totalPairsSpan = document.getElementById('totalPairsSpan');
-  const diffBtns = document.querySelectorAll('[data-diff]');
-  const toast = document.getElementById('toastMsg');
+    (function () {
+      "use strict";
+      // ----- state -----
+      const levelOrder = ['easy', 'medium', 'hard'];
+      let currentLevelIndex = 0;
+      let currentDifficulty = 'easy';
+      let cardsArray = [];
+      let hasFlippedCard = false, lockBoard = false, firstCard = null, secondCard = null;
+      let moves = 0, secondsElapsed = 0, matchedCount = 0, totalPairs = 0;
+      let timerInterval = null, gameActive = true;
 
-  function showToast(msg, dur = 1800) {
-    toast.textContent = msg;
-    toast.classList.add('show');
-    clearTimeout(toast._hide);
-    toast._hide = setTimeout(() => toast.classList.remove('show'), dur);
-  }
+      // DOM refs
+      const board = document.getElementById('game-board');
+      const movesSpan = document.getElementById('moves');
+      const timeSpan = document.getElementById('time');
+      const restartBtn = document.getElementById('restartBtn');
+      const winModal = document.getElementById('win-modal');
+      const victoryModal = document.getElementById('victory-modal');
+      const nextBtn = document.getElementById('nextLevelBtn');
+      const cancelBtn = document.getElementById('cancelModalBtn');
+      const finalMoves = document.getElementById('finalMovesSpan');
+      const finalTime = document.getElementById('finalTimeSpan');
+      const nextInfo = document.getElementById('nextLevelInfo');
+      const levelInd = document.getElementById('levelIndicator');
+      const fullResetBtn = document.getElementById('fullResetBtn');
+      const themeToggle = document.getElementById('themeToggle');
+      const themeIcon = document.getElementById('themeIcon');
+      const pairsMatched = document.getElementById('pairsMatched');
+      const totalPairsSpan = document.getElementById('totalPairsSpan');
+      const diffBtns = document.querySelectorAll('[data-diff]');
+      const toast = document.getElementById('toastMsg');
 
-  const config = {
-    easy: { rows: 3, cols: 4, pairs: 6, gridClass: 'grid-easy' },
-    medium: { rows: 4, cols: 4, pairs: 8, gridClass: 'grid-medium' },
-    hard: { rows: 4, cols: 6, pairs: 12, gridClass: 'grid-hard' }
-  };
-  const emojis = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐸", "🐵", "🐔", "🐧", "🐦", "🐴", "🦋", "🐝", "🐳", "🐬", "🦄", "🐙", "🍎", "🍒", "🍉", "🍕", "⚽", "🏀", "🎈", "🚀", "🌈", "⭐", "❄️", "🎵", "💎", "🔮"];
+      function showToast(msg, dur = 1800) {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(toast._hide);
+        toast._hide = setTimeout(() => toast.classList.remove('show'), dur);
+      }
 
-  function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; } return a; }
+      const config = {
+        easy: { rows: 3, cols: 4, pairs: 6, gridClass: 'grid-easy' },
+        medium: { rows: 4, cols: 4, pairs: 8, gridClass: 'grid-medium' },
+        hard: { rows: 4, cols: 6, pairs: 12, gridClass: 'grid-hard' }
+      };
+      const emojis = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐸", "🐵", "🐔", "🐧", "🐦", "🐴", "🦋", "🐝", "🐳", "🐬", "🦄", "🐙", "🍎", "🍒", "🍉", "🍕", "⚽", "🏀", "🎈", "🚀", "🌈", "⭐", "❄️", "🎵", "💎", "🔮"];
 
-  function generateDeck() {
-    const needed = config[currentDifficulty].pairs;
-    let pool = shuffle([...emojis]).slice(0, needed);
-    let deck = shuffle([...pool, ...pool]);
-    return deck;
-  }
+      function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; } return a; }
 
-  function updatePairCounter() { pairsMatched.textContent = matchedCount; totalPairsSpan.textContent = totalPairs; }
+      function generateDeck() {
+        const needed = config[currentDifficulty].pairs;
+        let pool = shuffle([...emojis]).slice(0, needed);
+        let deck = shuffle([...pool, ...pool]);
+        return deck;
+      }
 
-  function stopTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+      function updatePairCounter() { pairsMatched.textContent = matchedCount; totalPairsSpan.textContent = totalPairs; }
 
-  function resetBoardState() { hasFlippedCard = false; firstCard = null; secondCard = null; }
+      function stopTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
 
-  function buildBoard() {
-    board.innerHTML = '';
-    const cfg = config[currentDifficulty];
-    const deck = generateDeck();
-    totalPairs = cfg.pairs; matchedCount = 0; moves = 0; secondsElapsed = 0;
-    stopTimer(); timerInterval = null;
-    movesSpan.textContent = '0'; timeSpan.textContent = '0s'; updatePairCounter();
-    hasFlippedCard = false; lockBoard = false; firstCard = secondCard = null; gameActive = true;
+      function resetBoardState() { hasFlippedCard = false; firstCard = null; secondCard = null; }
 
-    board.className = `game-grid ${cfg.gridClass}`;
-    cardsArray = [];
-    deck.forEach((emoji, idx) => {
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.dataset.idx = idx;
-      card.dataset.emoji = emoji;
-      const inner = document.createElement('div');
-      inner.className = 'card-inner';
-      inner.innerHTML = `<div class="card-front">${emoji}</div><div class="card-back"><i class="fas fa-question-circle text-3xl text-indigo-300"></i></div>`;
-      card.appendChild(inner);
-      card.addEventListener('click', () => handleCardClick(card));
-      board.appendChild(card);
-      cardsArray.push(card);
-    });
-    levelInd.textContent = `${currentLevelIndex + 1}/${levelOrder.length}`;
-  }
+      function buildBoard() {
+        board.innerHTML = '';
+        const cfg = config[currentDifficulty];
+        const deck = generateDeck();
+        totalPairs = cfg.pairs; matchedCount = 0; moves = 0; secondsElapsed = 0;
+        stopTimer(); timerInterval = null;
+        movesSpan.textContent = '0'; timeSpan.textContent = '0s'; updatePairCounter();
+        hasFlippedCard = false; lockBoard = false; firstCard = secondCard = null; gameActive = true;
 
-  function startTimerIfNeeded() {
-    if (!timerInterval && gameActive && moves === 0) {
-      timerInterval = setInterval(() => {
-        if (gameActive) { secondsElapsed++; timeSpan.textContent = secondsElapsed + 's'; }
-      }, 1000);
-    }
-  }
+        board.className = `game-grid ${cfg.gridClass}`;
+        cardsArray = [];
+        deck.forEach((emoji, idx) => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.dataset.idx = idx;
+          card.dataset.emoji = emoji;
+          const inner = document.createElement('div');
+          inner.className = 'card-inner';
+          inner.innerHTML = `<div class="card-front">${emoji}</div><div class="card-back"><i class="fas fa-question-circle text-3xl text-indigo-300"></i></div>`;
+          card.appendChild(inner);
+          card.addEventListener('click', () => handleCardClick(card));
+          board.appendChild(card);
+          cardsArray.push(card);
+        });
+        levelInd.textContent = `${currentLevelIndex + 1}/${levelOrder.length}`;
+      }
 
-  function handleCardClick(card) {
-    if (lockBoard || !gameActive) return;
-    if (card.classList.contains('matched') || card.classList.contains('flipped')) return;
-    startTimerIfNeeded();
+      function startTimerIfNeeded() {
+        if (!timerInterval && gameActive && moves === 0) {
+          timerInterval = setInterval(() => {
+            if (gameActive) { secondsElapsed++; timeSpan.textContent = secondsElapsed + 's'; }
+          }, 1000);
+        }
+      }
 
-    if (!hasFlippedCard) {
-      card.classList.add('flipped');
-      hasFlippedCard = true;
-      firstCard = card;
-      return;
-    }
-    secondCard = card;
-    card.classList.add('flipped');
-    moves++;
-    movesSpan.textContent = moves;
+      function handleCardClick(card) {
+        if (lockBoard || !gameActive) return;
+        if (card.classList.contains('matched') || card.classList.contains('flipped')) return;
+        startTimerIfNeeded();
 
-    const match = firstCard.dataset.emoji === secondCard.dataset.emoji;
-    if (match) {
-      firstCard.classList.add('matched'); secondCard.classList.add('matched');
-      matchedCount++; updatePairCounter();
-      resetBoardState();
-      if (matchedCount === totalPairs) levelComplete();
-    } else {
-      lockBoard = true;
-      setTimeout(() => {
-        if (firstCard) firstCard.classList.remove('flipped');
-        if (secondCard) secondCard.classList.remove('flipped');
-        resetBoardState();
-        lockBoard = false;
-      }, 750);
-    }
-  }
+        if (!hasFlippedCard) {
+          card.classList.add('flipped');
+          hasFlippedCard = true;
+          firstCard = card;
+          return;
+        }
+        secondCard = card;
+        card.classList.add('flipped');
+        moves++;
+        movesSpan.textContent = moves;
 
-  function levelComplete() {
-    if (!gameActive) return;
-    gameActive = false; stopTimer();
-    finalMoves.textContent = moves;
-    finalTime.textContent = secondsElapsed + 's';
-    const last = currentLevelIndex === levelOrder.length - 1;
-    if (last) {
-      nextInfo.innerHTML = '🌟 Legendary! You\'ve dominated every mode! 🌟<br>Claim your final trophy!';
-      nextBtn.innerHTML = '<i class="fas fa-crown mr-2"></i> Claim Victory';
-    } else {
-      const nxt = levelOrder[currentLevelIndex + 1].toUpperCase();
-      const p = config[levelOrder[currentLevelIndex + 1]].pairs;
-      nextInfo.innerHTML = `🎉 Incredible! Next: <strong>${nxt}</strong> mode with <strong>${p} pairs</strong>! 🚀`;
-      nextBtn.innerHTML = '<i class="fas fa-arrow-right mr-2"></i> Advance to Next Level';
-    }
-    winModal.classList.remove('hidden');
-  }
+        const match = firstCard.dataset.emoji === secondCard.dataset.emoji;
+        if (match) {
+          firstCard.classList.add('matched'); secondCard.classList.add('matched');
+          matchedCount++; updatePairCounter();
+          resetBoardState();
+          if (matchedCount === totalPairs) levelComplete();
+        } else {
+          lockBoard = true;
+          setTimeout(() => {
+            if (firstCard) firstCard.classList.remove('flipped');
+            if (secondCard) secondCard.classList.remove('flipped');
+            resetBoardState();
+            lockBoard = false;
+          }, 750);
+        }
+      }
 
-  function goToNextLevel() {
-    winModal.classList.add('hidden');
-    if (currentLevelIndex === levelOrder.length - 1) { victoryModal.classList.remove('hidden'); return; }
-    currentLevelIndex++;
-    currentDifficulty = levelOrder[currentLevelIndex];
-    updateDiffActive(currentDifficulty);
-    resetGameStateForNewLevel();
-    buildBoard();
-    showToast(`✨ Moving to ${currentDifficulty.toUpperCase()} mode!`, 1800);
-  }
+      function levelComplete() {
+        if (!gameActive) return;
+        gameActive = false; stopTimer();
+        finalMoves.textContent = moves;
+        finalTime.textContent = secondsElapsed + 's';
+        const last = currentLevelIndex === levelOrder.length - 1;
+        if (last) {
+          nextInfo.innerHTML = '🌟 Legendary! You\'ve dominated every mode! 🌟<br>Claim your final trophy!';
+          nextBtn.innerHTML = '<i class="fas fa-crown mr-2"></i> Claim Victory';
+        } else {
+          const nxt = levelOrder[currentLevelIndex + 1].toUpperCase();
+          const p = config[levelOrder[currentLevelIndex + 1]].pairs;
+          nextInfo.innerHTML = `🎉 Incredible! Next: <strong>${nxt}</strong> mode with <strong>${p} pairs</strong>! 🚀`;
+          nextBtn.innerHTML = '<i class="fas fa-arrow-right mr-2"></i> Advance to Next Level';
+        }
+        winModal.classList.remove('hidden');
+      }
 
-  function resetGameStateForNewLevel() { stopTimer(); timerInterval = null; hasFlippedCard = false; lockBoard = false; firstCard = null; secondCard = null; gameActive = true; }
+      function goToNextLevel() {
+        winModal.classList.add('hidden');
+        if (currentLevelIndex === levelOrder.length - 1) { victoryModal.classList.remove('hidden'); return; }
+        currentLevelIndex++;
+        currentDifficulty = levelOrder[currentLevelIndex];
+        updateDiffActive(currentDifficulty);
+        resetGameStateForNewLevel();
+        buildBoard();
+        showToast(`✨ Moving to ${currentDifficulty.toUpperCase()} mode!`, 1800);
+      }
 
-  function restartCurrentLevel() { stopTimer(); timerInterval = null; hasFlippedCard = false; lockBoard = false; firstCard = secondCard = null; gameActive = true; buildBoard(); winModal.classList.add('hidden'); victoryModal.classList.add('hidden'); showToast('🔄 Level restarted!', 1200); }
+      function resetGameStateForNewLevel() { stopTimer(); timerInterval = null; hasFlippedCard = false; lockBoard = false; firstCard = null; secondCard = null; gameActive = true; }
 
-  function fullGameReset() { currentLevelIndex = 0; currentDifficulty = 'easy'; updateDiffActive('easy'); resetGameStateForNewLevel(); buildBoard(); victoryModal.classList.add('hidden'); winModal.classList.add('hidden'); showToast('🌟 Fresh journey! Easy mode 🌟', 1600); }
+      function restartCurrentLevel() { stopTimer(); timerInterval = null; hasFlippedCard = false; lockBoard = false; firstCard = secondCard = null; gameActive = true; buildBoard(); winModal.classList.add('hidden'); victoryModal.classList.add('hidden'); showToast('🔄 Level restarted!', 1200); }
 
-  function updateDiffActive(diff) { diffBtns.forEach(b => { const v = b.dataset.diff; if (v === diff) b.classList.add('active'); else b.classList.remove('active'); }); }
+      function fullGameReset() { currentLevelIndex = 0; currentDifficulty = 'easy'; updateDiffActive('easy'); resetGameStateForNewLevel(); buildBoard(); victoryModal.classList.add('hidden'); winModal.classList.add('hidden'); showToast('🌟 Fresh journey! Easy mode 🌟', 1600); }
 
-  function setDifficultyAndReset(diff) {
-    if (diff === currentDifficulty && currentLevelIndex === levelOrder.indexOf(diff)) { restartCurrentLevel(); return; }
-    currentDifficulty = diff; currentLevelIndex = levelOrder.indexOf(diff); if (currentLevelIndex < 0) currentLevelIndex = 0;
-    updateDiffActive(currentDifficulty);
-    resetGameStateForNewLevel();
-    buildBoard();
-    winModal.classList.add('hidden'); victoryModal.classList.add('hidden');
-    showToast(`🎮 Switched to ${diff.toUpperCase()} mode.`, 1500);
-  }
+      function updateDiffActive(diff) { diffBtns.forEach(b => { const v = b.dataset.diff; if (v === diff) b.classList.add('active'); else b.classList.remove('active'); }); }
 
-  // theme
-  function initTheme() { const dark = localStorage.getItem('memoryTheme') === 'dark'; document.body.classList.toggle('dark-mode', dark); themeIcon.className = dark ? 'fas fa-sun' : 'fas fa-moon'; }
-  function toggleTheme() { const dark = document.body.classList.toggle('dark-mode'); localStorage.setItem('memoryTheme', dark ? 'dark' : 'light'); themeIcon.className = dark ? 'fas fa-sun' : 'fas fa-moon'; showToast(dark ? '🌙 Dark mode' : '☀️ Light mode', 1000); }
+      function setDifficultyAndReset(diff) {
+        if (diff === currentDifficulty && currentLevelIndex === levelOrder.indexOf(diff)) { restartCurrentLevel(); return; }
+        currentDifficulty = diff; currentLevelIndex = levelOrder.indexOf(diff); if (currentLevelIndex < 0) currentLevelIndex = 0;
+        updateDiffActive(currentDifficulty);
+        resetGameStateForNewLevel();
+        buildBoard();
+        winModal.classList.add('hidden'); victoryModal.classList.add('hidden');
+        showToast(`🎮 Switched to ${diff.toUpperCase()} mode.`, 1500);
+      }
 
-  // event listeners
-  restartBtn.addEventListener('click', restartCurrentLevel);
-  nextBtn.addEventListener('click', goToNextLevel);
-  cancelBtn.addEventListener('click', () => winModal.classList.add('hidden'));
-  fullResetBtn.addEventListener('click', fullGameReset);
-  themeToggle.addEventListener('click', toggleTheme);
-  diffBtns.forEach(b => b.addEventListener('click', () => setDifficultyAndReset(b.dataset.diff)));
+      // theme
+      function initTheme() { const dark = localStorage.getItem('memoryTheme') === 'dark'; document.body.classList.toggle('dark-mode', dark); themeIcon.className = dark ? 'fas fa-sun' : 'fas fa-moon'; }
+      function toggleTheme() { const dark = document.body.classList.toggle('dark-mode'); localStorage.setItem('memoryTheme', dark ? 'dark' : 'light'); themeIcon.className = dark ? 'fas fa-sun' : 'fas fa-moon'; showToast(dark ? '🌙 Dark mode' : '☀️ Light mode', 1000); }
 
-  // init
-  initTheme();
-  currentLevelIndex = 0; currentDifficulty = 'easy'; updateDiffActive('easy'); buildBoard();
-})();
+      // event listeners
+      restartBtn.addEventListener('click', restartCurrentLevel);
+      nextBtn.addEventListener('click', goToNextLevel);
+      cancelBtn.addEventListener('click', () => winModal.classList.add('hidden'));
+      fullResetBtn.addEventListener('click', fullGameReset);
+      themeToggle.addEventListener('click', toggleTheme);
+      diffBtns.forEach(b => b.addEventListener('click', () => setDifficultyAndReset(b.dataset.diff)));
+
+      // init
+      initTheme();
+      currentLevelIndex = 0; currentDifficulty = 'easy'; updateDiffActive('easy'); buildBoard();
+    })();
 
   </script>
 </body>

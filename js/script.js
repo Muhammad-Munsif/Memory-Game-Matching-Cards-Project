@@ -1,4 +1,4 @@
-<script src="js/script.js">
+
 
 
         (function () {
@@ -204,4 +204,4 @@
             currentLevelIndex = 0; currentDifficulty = 'easy'; updateDiffActive('easy'); buildBoard();
         })();
 
-    </script>
+    

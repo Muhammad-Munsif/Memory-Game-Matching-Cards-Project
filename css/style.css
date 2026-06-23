@@ -1,4 +1,4 @@
-<style>
+
     /* ----- global reset & better touch ----- */
     * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
     body { transition: background 0.3s, color 0.2s; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
@@ -180,4 +180,4 @@
 
     /* level badge pulse */
     .level-badge { background: rgba(255,215,0,0.15); border-radius: 40px; padding: 0.2rem 0.8rem; }
-  </style>
+  

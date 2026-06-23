@@ -1,4 +1,4 @@
-<script>
+
     (function(){
       "use strict";
       // ----- state -----
@@ -201,4 +201,4 @@
       initTheme();
       currentLevelIndex=0; currentDifficulty='easy'; updateDiffActive('easy'); buildBoard();
     })();
-  </script>
+  

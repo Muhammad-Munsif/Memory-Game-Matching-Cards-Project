@@ -1,503 +1,804 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-  <title>Memory Odyssey · 6 Levels</title>
-  <!-- Tailwind + Font Awesome -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <style>
-    /* ----- global reset & better touch ----- */
-    * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
-    body { transition: background 0.3s, color 0.2s; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>Memory Odyssey · 6 Levels</title>
+    <!-- Tailwind + Font Awesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        /* ----- global reset & better touch ----- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-    /* dark mode with glass refinement */
-    body.dark-mode { background: linear-gradient(145deg, #0b1120, #141d3a, #1a153a) !important; }
-    body.dark-mode .stat-panel { background: rgba(10, 14, 30, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,215,0,0.08); }
-    body.dark-mode .card-back { background: linear-gradient(145deg, #28344a, #1a2538); border: 1px solid rgba(255,215,0,0.15); }
-    body.dark-mode .card-front { background: linear-gradient(145deg, #fbbf24, #f59e0b); color: #13162b; }
-    body.dark-mode .difficulty-btn { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(8px); color: #cbd5f0; border: 1px solid #3d4b66; }
-    body.dark-mode .difficulty-btn.active { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; border-color: #a78bfa; box-shadow: 0 0 30px #7c3aed60; }
-    body.dark-mode .restart-btn { background: rgba(42, 56, 80, 0.8); backdrop-filter: blur(8px); color: #f0f4ff; border: 1px solid #4a5a7a; }
-    body.dark-mode .win-modal-content { background: linear-gradient(145deg, #1a2642, #0e162b); color: #f0f4ff; border: 1px solid rgba(255,215,0,0.1); }
-    body.dark-mode .glass-header { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        body {
+            transition: background 0.3s, color 0.2s;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
 
-    /* glass-morphism header & pills */
-    .glass-header { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.12); }
-    .glass-pills { background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+        /* dark mode with glass refinement */
+        body.dark-mode {
+            background: linear-gradient(145deg, #0b1120, #141d3a, #1a153a) !important;
+        }
 
-    /* ----- card 3D flip (icons) with glass touch ----- */
-    .card {
-      perspective: 1400px;
-      cursor: pointer;
-      aspect-ratio: 1/1;
-      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .card:hover { transform: scale(1.04) translateY(-2px); }
-    .card-inner {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      transform-style: preserve-3d;
-      transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-      border-radius: 1.2rem;
-    }
-    .card.flipped .card-inner { transform: rotateY(180deg); }
-    .card-front, .card-back {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      backface-visibility: hidden;
-      border-radius: 1.2rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-    }
-    .card-front {
-      background: linear-gradient(145deg, #ffd966, #fbbf24);
-      transform: rotateY(180deg);
-      color: #1e1a2f;
-      border: 2px solid rgba(255,215,0,0.3);
-    }
-    .card-front i { font-size: 2.4rem; color: #1e1a2f; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
-    .card-back {
-      background: linear-gradient(145deg, #ffffff, #f8fafc);
-      transform: rotateY(0deg);
-      border: 2px solid rgba(99, 102, 241, 0.25);
-    }
-    .card-back i { font-size: 3rem; color: #818cf8; opacity: 0.5; transition: 0.3s; }
-    .card:hover .card-back i { opacity: 0.9; transform: scale(1.05); }
+        body.dark-mode .stat-panel {
+            background: rgba(10, 14, 30, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 215, 0, 0.08);
+        }
 
-    .card.matched {
-      opacity: 0.7;
-      cursor: default;
-      filter: drop-shadow(0 0 20px rgba(255,215,0,0.4));
-      transform: scale(0.95);
-      transition: 0.3s;
-    }
-    .card.matched .card-front i { animation: matchGlow 0.6s ease; }
-    @keyframes matchGlow {
-      0% { transform: scale(1) rotate(0deg); filter: brightness(1); }
-      40% { transform: scale(1.3) rotate(8deg); filter: brightness(1.4); text-shadow: 0 0 30px gold; }
-      100% { transform: scale(1) rotate(0deg); filter: brightness(1); }
-    }
+        body.dark-mode .card-back {
+            background: linear-gradient(145deg, #28344a, #1a2538);
+            border: 1px solid rgba(255, 215, 0, 0.15);
+        }
 
-    /* ----- responsive grids (mobile-first) ----- */
-    .game-grid {
-      display: grid;
-      gap: 0.7rem;
-      justify-content: center;
-      margin: 0.5rem auto;
-      width: 100%;
-      max-width: 740px;
-    }
-    /* 6 levels: grid variations */
-    .grid-level-0 { grid-template-columns: repeat(3, 1fr); }  /* easy 3x4 */
-    .grid-level-1 { grid-template-columns: repeat(4, 1fr); }  /* medium 4x4 */
-    .grid-level-2 { grid-template-columns: repeat(4, 1fr); }  /* medium+ 4x5 */
-    .grid-level-3 { grid-template-columns: repeat(4, 1fr); }  /* hard 4x6 */
-    .grid-level-4 { grid-template-columns: repeat(5, 1fr); }  /* expert 5x6 */
-    .grid-level-5 { grid-template-columns: repeat(6, 1fr); }  /* master 6x6 */
+        body.dark-mode .card-front {
+            background: linear-gradient(145deg, #fbbf24, #f59e0b);
+            color: #13162b;
+        }
 
-    .card { min-height: 70px; }
-    .card-front i, .card-back i { font-size: 1.6rem; }
+        body.dark-mode .difficulty-btn {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(8px);
+            color: #cbd5f0;
+            border: 1px solid #3d4b66;
+        }
 
-    @media (min-width: 480px) {
-      .grid-level-0 { grid-template-columns: repeat(3, minmax(80px, 110px)); }
-      .grid-level-1 { grid-template-columns: repeat(4, minmax(80px, 110px)); }
-      .grid-level-2 { grid-template-columns: repeat(4, minmax(80px, 110px)); }
-      .grid-level-3 { grid-template-columns: repeat(4, minmax(80px, 110px)); }
-      .grid-level-4 { grid-template-columns: repeat(5, minmax(72px, 100px)); }
-      .grid-level-5 { grid-template-columns: repeat(6, minmax(68px, 95px)); }
-      .card-front i, .card-back i { font-size: 2rem; }
-    }
-    @media (min-width: 768px) {
-      .grid-level-0 { grid-template-columns: repeat(3, minmax(100px, 130px)); }
-      .grid-level-1 { grid-template-columns: repeat(4, minmax(100px, 130px)); }
-      .grid-level-2 { grid-template-columns: repeat(4, minmax(100px, 130px)); }
-      .grid-level-3 { grid-template-columns: repeat(4, minmax(100px, 130px)); }
-      .grid-level-4 { grid-template-columns: repeat(5, minmax(90px, 115px)); }
-      .grid-level-5 { grid-template-columns: repeat(6, minmax(85px, 110px)); }
-      .card-front i, .card-back i { font-size: 2.8rem; }
-    }
-    @media (max-width: 420px) {
-      .game-grid { gap: 0.4rem; }
-      .card { min-height: 56px; }
-      .card-front i, .card-back i { font-size: 1.2rem; }
-      .stat-panel { padding: 0.25rem 0.6rem; font-size: 0.65rem; }
-      .difficulty-btn { font-size: 0.65rem; padding: 0.3rem 0.6rem; }
-    }
-    @media (max-width: 360px) {
-      .card-front i, .card-back i { font-size: 1rem; }
-      .stat-panel { font-size: 0.55rem; padding: 0.15rem 0.4rem; }
-    }
+        body.dark-mode .difficulty-btn.active {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            border-color: #a78bfa;
+            box-shadow: 0 0 30px #7c3aed60;
+        }
 
-    /* ----- UI components (glass + refined) ----- */
-    .difficulty-btn {
-      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-      font-weight: 700;
-      backdrop-filter: blur(8px);
-      background: rgba(255,255,255,0.4);
-      border: 1px solid rgba(255,255,255,0.15);
-    }
-    .difficulty-btn.active {
-      background: linear-gradient(135deg, #3b82f6, #6366f1);
-      color: white;
-      transform: scale(1.05);
-      box-shadow: 0 8px 30px #3b82f660;
-      border-color: #a78bfa;
-    }
-    .stat-panel {
-      backdrop-filter: blur(12px);
-      background: rgba(255,255,255,0.12);
-      border-radius: 1.2rem;
-      transition: 0.25s;
-      padding: 0.4rem 1rem;
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-    .modal-pop { animation: modalFade 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
-    @keyframes modalFade { from { opacity:0; transform:scale(0.9) translateY(20px); } to { opacity:1; transform:scale(1) translateY(0); } }
-    .win-modal-content {
-      background: rgba(255,255,255,0.9);
-      backdrop-filter: blur(20px);
-      border-radius: 2rem;
-      border: 1px solid rgba(255,255,255,0.2);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    }
-    .restart-btn {
-      transition: 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-      background: rgba(255,255,255,0.5);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,0.15);
-    }
-    .restart-btn:hover { transform: scale(1.04); background: rgba(255,255,255,0.7); }
-    .restart-btn:active { transform: scale(0.94); }
+        body.dark-mode .restart-btn {
+            background: rgba(42, 56, 80, 0.8);
+            backdrop-filter: blur(8px);
+            color: #f0f4ff;
+            border: 1px solid #4a5a7a;
+        }
 
-    /* toast */
-    #toastMsg {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.75);
-      backdrop-filter: blur(16px);
-      color: white;
-      padding: 0.7rem 2rem;
-      border-radius: 60px;
-      font-size: 0.95rem;
-      opacity: 0;
-      transition: opacity 0.4s, transform 0.3s;
-      pointer-events: none;
-      z-index: 999;
-      white-space: nowrap;
-      border: 1px solid rgba(255,255,255,0.05);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.3);
-    }
-    #toastMsg.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        body.dark-mode .win-modal-content {
+            background: linear-gradient(145deg, #1a2642, #0e162b);
+            color: #f0f4ff;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
 
-    .level-badge { background: rgba(255,215,0,0.15); border-radius: 40px; padding: 0.15rem 0.7rem; }
-    
-    /* level progress indicator */
-    .level-dots { display: flex; gap: 6px; align-items: center; }
-    .level-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.2); transition: 0.3s; }
-    .level-dot.active { background: #fbbf24; box-shadow: 0 0 12px rgba(251,191,36,0.5); }
-    .level-dot.done { background: #34d399; }
-  </style>
+        body.dark-mode .glass-header {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* glass-morphism header & pills */
+        .glass-header {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .glass-pills {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* ----- card 3D flip (icons) with glass touch ----- */
+        .card {
+            perspective: 1400px;
+            cursor: pointer;
+            aspect-ratio: 1/1;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .card:hover {
+            transform: scale(1.04) translateY(-2px);
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            border-radius: 1.2rem;
+        }
+
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front,
+        .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-front {
+            background: linear-gradient(145deg, #ffd966, #fbbf24);
+            transform: rotateY(180deg);
+            color: #1e1a2f;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .card-front i {
+            font-size: 2.4rem;
+            color: #1e1a2f;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .card-back {
+            background: linear-gradient(145deg, #ffffff, #f8fafc);
+            transform: rotateY(0deg);
+            border: 2px solid rgba(99, 102, 241, 0.25);
+        }
+
+        .card-back i {
+            font-size: 3rem;
+            color: #818cf8;
+            opacity: 0.5;
+            transition: 0.3s;
+        }
+
+        .card:hover .card-back i {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+
+        .card.matched {
+            opacity: 0.7;
+            cursor: default;
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.4));
+            transform: scale(0.95);
+            transition: 0.3s;
+        }
+
+        .card.matched .card-front i {
+            animation: matchGlow 0.6s ease;
+        }
+
+        @keyframes matchGlow {
+            0% {
+                transform: scale(1) rotate(0deg);
+                filter: brightness(1);
+            }
+
+            40% {
+                transform: scale(1.3) rotate(8deg);
+                filter: brightness(1.4);
+                text-shadow: 0 0 30px gold;
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+                filter: brightness(1);
+            }
+        }
+
+        /* ----- responsive grids (mobile-first) ----- */
+        .game-grid {
+            display: grid;
+            gap: 0.7rem;
+            justify-content: center;
+            margin: 0.5rem auto;
+            width: 100%;
+            max-width: 740px;
+        }
+
+        /* 6 levels: grid variations */
+        .grid-level-0 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        /* easy 3x4 */
+        .grid-level-1 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        /* medium 4x4 */
+        .grid-level-2 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        /* medium+ 4x5 */
+        .grid-level-3 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        /* hard 4x6 */
+        .grid-level-4 {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        /* expert 5x6 */
+        .grid-level-5 {
+            grid-template-columns: repeat(6, 1fr);
+        }
+
+        /* master 6x6 */
+
+        .card {
+            min-height: 70px;
+        }
+
+        .card-front i,
+        .card-back i {
+            font-size: 1.6rem;
+        }
+
+        @media (min-width: 480px) {
+            .grid-level-0 {
+                grid-template-columns: repeat(3, minmax(80px, 110px));
+            }
+
+            .grid-level-1 {
+                grid-template-columns: repeat(4, minmax(80px, 110px));
+            }
+
+            .grid-level-2 {
+                grid-template-columns: repeat(4, minmax(80px, 110px));
+            }
+
+            .grid-level-3 {
+                grid-template-columns: repeat(4, minmax(80px, 110px));
+            }
+
+            .grid-level-4 {
+                grid-template-columns: repeat(5, minmax(72px, 100px));
+            }
+
+            .grid-level-5 {
+                grid-template-columns: repeat(6, minmax(68px, 95px));
+            }
+
+            .card-front i,
+            .card-back i {
+                font-size: 2rem;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .grid-level-0 {
+                grid-template-columns: repeat(3, minmax(100px, 130px));
+            }
+
+            .grid-level-1 {
+                grid-template-columns: repeat(4, minmax(100px, 130px));
+            }
+
+            .grid-level-2 {
+                grid-template-columns: repeat(4, minmax(100px, 130px));
+            }
+
+            .grid-level-3 {
+                grid-template-columns: repeat(4, minmax(100px, 130px));
+            }
+
+            .grid-level-4 {
+                grid-template-columns: repeat(5, minmax(90px, 115px));
+            }
+
+            .grid-level-5 {
+                grid-template-columns: repeat(6, minmax(85px, 110px));
+            }
+
+            .card-front i,
+            .card-back i {
+                font-size: 2.8rem;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .game-grid {
+                gap: 0.4rem;
+            }
+
+            .card {
+                min-height: 56px;
+            }
+
+            .card-front i,
+            .card-back i {
+                font-size: 1.2rem;
+            }
+
+            .stat-panel {
+                padding: 0.25rem 0.6rem;
+                font-size: 0.65rem;
+            }
+
+            .difficulty-btn {
+                font-size: 0.65rem;
+                padding: 0.3rem 0.6rem;
+            }
+        }
+
+        @media (max-width: 360px) {
+
+            .card-front i,
+            .card-back i {
+                font-size: 1rem;
+            }
+
+            .stat-panel {
+                font-size: 0.55rem;
+                padding: 0.15rem 0.4rem;
+            }
+        }
+
+        /* ----- UI components (glass + refined) ----- */
+        .difficulty-btn {
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-weight: 700;
+            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .difficulty-btn.active {
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 8px 30px #3b82f660;
+            border-color: #a78bfa;
+        }
+
+        .stat-panel {
+            backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 1.2rem;
+            transition: 0.25s;
+            padding: 0.4rem 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .modal-pop {
+            animation: modalFade 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modalFade {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .win-modal-content {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .restart-btn {
+            transition: 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.04);
+            background: rgba(255, 255, 255, 0.7);
+        }
+
+        .restart-btn:active {
+            transform: scale(0.94);
+        }
+
+        /* toast */
+        #toastMsg {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(16px);
+            color: white;
+            padding: 0.7rem 2rem;
+            border-radius: 60px;
+            font-size: 0.95rem;
+            opacity: 0;
+            transition: opacity 0.4s, transform 0.3s;
+            pointer-events: none;
+            z-index: 999;
+            white-space: nowrap;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        #toastMsg.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .level-badge {
+            background: rgba(255, 215, 0, 0.15);
+            border-radius: 40px;
+            padding: 0.15rem 0.7rem;
+        }
+
+        /* level progress indicator */
+        .level-dots {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .level-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: 0.3s;
+        }
+
+        .level-dot.active {
+            background: #fbbf24;
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+        }
+
+        .level-dot.done {
+            background: #34d399;
+        }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex flex-col items-center justify-start p-3 md:p-5 transition-colors duration-300">
-  <div class="w-full max-w-6xl mx-auto">
-    <!-- header with glass -->
-    <div class="glass-header flex flex-wrap justify-between items-center mb-4 gap-2 rounded-2xl px-4 py-2 md:px-6 md:py-3">
-      <h1 class="text-2xl md:text-5xl font-extrabold text-white drop-shadow-xl flex items-center gap-2">
-        <i class="fa-solid fa-brain text-yellow-300 animate-pulse text-3xl md:text-5xl"></i>
-        <span class="bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-orange-200 text-xl md:text-5xl">Memory Odyssey</span>
-      </h1>
-      <button id="themeToggle" class="bg-white/20 backdrop-blur-md text-white rounded-full w-11 h-11 md:w-12 md:h-12 flex items-center justify-center text-xl hover:bg-white/40 hover:scale-105 transition-all shadow-xl border border-white/10">
-        <i id="themeIcon" class="fas fa-moon"></i>
-      </button>
-    </div>
 
-    <!-- difficulty pills (glass) - now 6 levels -->
-    <div class="glass-pills flex flex-wrap justify-center gap-2 md:gap-3 mb-4 p-2 md:p-3 rounded-2xl">
-      <button data-diff="0" class="difficulty-btn px-3 md:px-5 py-2 rounded-full font-bold shadow-md transition-all active">🌟 LVL 1 <span class="text-xs ml-1 hidden sm:inline">(3x4)</span></button>
-      <button data-diff="1" class="difficulty-btn px-3 md:px-5 py-2 rounded-full font-bold shadow-md transition-all">⚡ LVL 2 <span class="text-xs ml-1 hidden sm:inline">(4x4)</span></button>
-      <button data-diff="2" class="difficulty-btn px-3 md:px-5 py-2 rounded-full font-bold shadow-md transition-all">🔥 LVL 3 <span class="text-xs ml-1 hidden sm:inline">(4x5)</span></button>
-      <button data-diff="3" class="difficulty-btn px-3 md:px-5 py-2 rounded-full font-bold shadow-md transition-all">🌀 LVL 4 <span class="text-xs ml-1 hidden sm:inline">(4x6)</span></button>
-      <button data-diff="4" class="difficulty-btn px-3 md:px-5 py-2 rounded-full font-bold shadow-md transition-all">💎 LVL 5 <span class="text-xs ml-1 hidden sm:inline">(5x6)</span></button>
-      <button data-diff="5" class="difficulty-btn px-3 md:px-5 py-2 rounded-full font-bold shadow-md transition-all">👑 LVL 6 <span class="text-xs ml-1 hidden sm:inline">(6x6)</span></button>
-    </div>
-
-    <!-- stats + restart (glass) -->
-    <div class="flex flex-wrap justify-center sm:justify-between items-center gap-2 md:gap-4 mb-5">
-      <div class="flex flex-wrap justify-center gap-2 md:gap-3">
-        <div class="stat-panel text-white font-bold shadow-lg flex items-center gap-1 md:gap-2 text-sm md:text-base"><i class="fas fa-hand-peace text-yellow-200"></i><span>MOVES: <span id="moves" class="text-lg md:text-xl">0</span></span></div>
-        <div class="stat-panel text-white font-bold shadow-lg flex items-center gap-1 md:gap-2 text-sm md:text-base"><i class="fas fa-hourglass-half text-yellow-200"></i><span>TIME: <span id="time" class="text-lg md:text-xl">0s</span></span></div>
-        <div class="stat-panel text-white font-bold shadow-lg flex items-center gap-1 md:gap-2 text-sm md:text-base">
-          <i class="fas fa-layer-group text-yellow-200"></i>
-          <span>LEVEL: <span id="levelIndicator" class="text-lg md:text-xl level-badge">1/6</span></span>
+<body
+    class="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex flex-col items-center justify-start p-3 md:p-5 transition-colors duration-300">
+    <div class="w-full max-w-6xl mx-auto">
+        <!-- header with glass -->
+        <div
+            class="glass-header flex flex-wrap justify-between items-center mb-4 gap-2 rounded-2xl px-4 py-2 md:px-6 md:py-3">
+            <h1 class="text-2xl md:text-5xl font-extrabold text-white drop-shadow-xl flex items-center gap-2">
+                <i class="fa-solid fa-brain text-yellow-300 animate-pulse text-3xl md:text-5xl"></i>
+                <span
+                    class="bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-orange-200 text-xl md:text-5xl">Memory
+                    Odyssey</span>
+            </h1>
+            <button id="themeToggle"
+                class="bg-white/20 backdrop-blur-md text-white rounded-full w-11 h-11 md:w-12 md:h-12 flex items-center justify-center text-xl hover:bg-white/40 hover:scale-105 transition-all shadow-xl border border-white/10">
+                <i id="themeIcon" class="fas fa-moon"></i>
+            </button>
         </div>
-        <div class="stat-panel text-white font-bold shadow-lg flex items-center gap-1 md:gap-2 text-sm md:text-base"><i class="fas fa-star text-yellow-200"></i><span>PAIRS: <span id="pairsMatched">0</span>/<span id="totalPairsSpan">0</span></span></div>
-      </div>
-      <div class="flex items-center gap-3">
-        <div id="levelDots" class="level-dots"></div>
-        <button id="restartBtn" class="restart-btn text-indigo-700 hover:text-indigo-800 font-bold py-2 px-5 md:px-7 rounded-xl shadow-lg transition-all flex items-center gap-2 text-sm md:text-base"><i class="fas fa-arrows-rotate"></i> Restart</button>
-      </div>
-    </div>
 
-    <!-- board -->
-    <div id="game-board" class="game-grid flex justify-center"></div>
-
-    <!-- level complete modal (glass) -->
-    <div id="win-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-lg flex items-center justify-center z-50 p-4">
-      <div class="win-modal-content rounded-2xl p-6 md:p-8 max-w-sm w-full text-center shadow-2xl modal-pop">
-        <div class="text-5xl md:text-6xl mb-2">🏆</div>
-        <h2 class="text-2xl md:text-3xl font-extrabold text-indigo-600 dark:text-indigo-400">Level Complete!</h2>
-        <div class="bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 rounded-xl p-3 my-3 text-sm md:text-base">
-          <p>✨ <strong id="finalMovesSpan">0</strong> moves &nbsp;|&nbsp; ⏱️ <strong id="finalTimeSpan">0s</strong></p>
+        <!-- difficulty pills (glass) - now 6 levels -->
+        <div class="glass-pills flex flex-wrap justify-center gap-2 md:gap-3 mb-4 p-2 md:p-3 rounded-2xl">
+            <button data-diff="0"
+                class="difficulty-btn px-3 md:px-5 py-2 rounded-full font-bold shadow-md transition-all active">🌟 LVL 1
+                <span class="text-xs ml-1 hidden sm:inline">(3x4)</span></button>
+            <button data-diff="1"
+                class="difficulty-btn px-3 md:px-5 py-2 rounded-full font-bold shadow-md transition-all">⚡ LVL 2 <span
+                    class="text-xs ml-1 hidden sm:inline">(4x4)</span></button>
+            <button data-diff="2"
+                class="difficulty-btn px-3 md:px-5 py-2 rounded-full font-bold shadow-md transition-all">🔥 LVL 3 <span
+                    class="text-xs ml-1 hidden sm:inline">(4x5)</span></button>
+            <button data-diff="3"
+                class="difficulty-btn px-3 md:px-5 py-2 rounded-full font-bold shadow-md transition-all">🌀 LVL 4 <span
+                    class="text-xs ml-1 hidden sm:inline">(4x6)</span></button>
+            <button data-diff="4"
+                class="difficulty-btn px-3 md:px-5 py-2 rounded-full font-bold shadow-md transition-all">💎 LVL 5 <span
+                    class="text-xs ml-1 hidden sm:inline">(5x6)</span></button>
+            <button data-diff="5"
+                class="difficulty-btn px-3 md:px-5 py-2 rounded-full font-bold shadow-md transition-all">👑 LVL 6 <span
+                    class="text-xs ml-1 hidden sm:inline">(6x6)</span></button>
         </div>
-        <div id="nextLevelInfo" class="mb-4 text-sm md:text-md font-medium text-gray-700 dark:text-gray-300"></div>
-        <button id="nextLevelBtn" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg w-full flex items-center justify-center gap-2 text-sm md:text-base"><i class="fas fa-arrow-right"></i> Next Level</button>
-        <button id="cancelModalBtn" class="mt-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 text-sm transition">Continue Playing</button>
-      </div>
+
+        <!-- stats + restart (glass) -->
+        <div class="flex flex-wrap justify-center sm:justify-between items-center gap-2 md:gap-4 mb-5">
+            <div class="flex flex-wrap justify-center gap-2 md:gap-3">
+                <div
+                    class="stat-panel text-white font-bold shadow-lg flex items-center gap-1 md:gap-2 text-sm md:text-base">
+                    <i class="fas fa-hand-peace text-yellow-200"></i><span>MOVES: <span id="moves"
+                            class="text-lg md:text-xl">0</span></span></div>
+                <div
+                    class="stat-panel text-white font-bold shadow-lg flex items-center gap-1 md:gap-2 text-sm md:text-base">
+                    <i class="fas fa-hourglass-half text-yellow-200"></i><span>TIME: <span id="time"
+                            class="text-lg md:text-xl">0s</span></span></div>
+                <div
+                    class="stat-panel text-white font-bold shadow-lg flex items-center gap-1 md:gap-2 text-sm md:text-base">
+                    <i class="fas fa-layer-group text-yellow-200"></i>
+                    <span>LEVEL: <span id="levelIndicator" class="text-lg md:text-xl level-badge">1/6</span></span>
+                </div>
+                <div
+                    class="stat-panel text-white font-bold shadow-lg flex items-center gap-1 md:gap-2 text-sm md:text-base">
+                    <i class="fas fa-star text-yellow-200"></i><span>PAIRS: <span id="pairsMatched">0</span>/<span
+                            id="totalPairsSpan">0</span></span></div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div id="levelDots" class="level-dots"></div>
+                <button id="restartBtn"
+                    class="restart-btn text-indigo-700 hover:text-indigo-800 font-bold py-2 px-5 md:px-7 rounded-xl shadow-lg transition-all flex items-center gap-2 text-sm md:text-base"><i
+                        class="fas fa-arrows-rotate"></i> Restart</button>
+            </div>
+        </div>
+
+        <!-- board -->
+        <div id="game-board" class="game-grid flex justify-center"></div>
+
+        <!-- level complete modal (glass) -->
+        <div id="win-modal"
+            class="hidden fixed inset-0 bg-black/60 backdrop-blur-lg flex items-center justify-center z-50 p-4">
+            <div class="win-modal-content rounded-2xl p-6 md:p-8 max-w-sm w-full text-center shadow-2xl modal-pop">
+                <div class="text-5xl md:text-6xl mb-2">🏆</div>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-indigo-600 dark:text-indigo-400">Level Complete!
+                </h2>
+                <div
+                    class="bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 rounded-xl p-3 my-3 text-sm md:text-base">
+                    <p>✨ <strong id="finalMovesSpan">0</strong> moves &nbsp;|&nbsp; ⏱️ <strong
+                            id="finalTimeSpan">0s</strong></p>
+                </div>
+                <div id="nextLevelInfo" class="mb-4 text-sm md:text-md font-medium text-gray-700 dark:text-gray-300">
+                </div>
+                <button id="nextLevelBtn"
+                    class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg w-full flex items-center justify-center gap-2 text-sm md:text-base"><i
+                        class="fas fa-arrow-right"></i> Next Level</button>
+                <button id="cancelModalBtn"
+                    class="mt-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 text-sm transition">Continue
+                    Playing</button>
+            </div>
+        </div>
+
+        <!-- victory modal (glass) -->
+        <div id="victory-modal"
+            class="hidden fixed inset-0 bg-black/70 backdrop-blur-xl flex items-center justify-center z-50 p-4">
+            <div
+                class="bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-gray-800 dark:to-gray-900 rounded-2xl p-6 md:p-8 max-w-sm w-full text-center shadow-2xl modal-pop border border-white/10">
+                <i class="fas fa-crown text-5xl md:text-6xl text-yellow-500 mb-2 animate-bounce"></i>
+                <h2 class="text-2xl md:text-3xl font-black text-purple-700 dark:text-purple-300">🏆 GRAND MASTER</h2>
+                <p class="text-lg md:text-xl my-2">You conquered all 6 dimensions!</p>
+                <div class="flex justify-center gap-1 text-2xl my-2">⭐⭐⭐⭐⭐</div>
+                <p class="mb-4 text-sm md:text-base text-gray-600 dark:text-gray-300">Incredible memory unlocked ✨</p>
+                <button id="fullResetBtn"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl w-full transition flex items-center justify-center gap-2 text-sm md:text-base"><i
+                        class="fas fa-play"></i> Play Again from Level 1</button>
+            </div>
+        </div>
+
+        <!-- toast -->
+        <div id="toastMsg"></div>
     </div>
 
-    <!-- victory modal (glass) -->
-    <div id="victory-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-xl flex items-center justify-center z-50 p-4">
-      <div class="bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-gray-800 dark:to-gray-900 rounded-2xl p-6 md:p-8 max-w-sm w-full text-center shadow-2xl modal-pop border border-white/10">
-        <i class="fas fa-crown text-5xl md:text-6xl text-yellow-500 mb-2 animate-bounce"></i>
-        <h2 class="text-2xl md:text-3xl font-black text-purple-700 dark:text-purple-300">🏆 GRAND MASTER</h2>
-        <p class="text-lg md:text-xl my-2">You conquered all 6 dimensions!</p>
-        <div class="flex justify-center gap-1 text-2xl my-2">⭐⭐⭐⭐⭐</div>
-        <p class="mb-4 text-sm md:text-base text-gray-600 dark:text-gray-300">Incredible memory unlocked ✨</p>
-        <button id="fullResetBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl w-full transition flex items-center justify-center gap-2 text-sm md:text-base"><i class="fas fa-play"></i> Play Again from Level 1</button>
-      </div>
-    </div>
+    <script>
+        (function () {
+            "use strict";
+            // ----- 6 LEVELS -----
+            const levelOrder = [0, 1, 2, 3, 4, 5]; // 6 levels
+            const levelConfig = [
+                { rows: 3, cols: 4, pairs: 6, gridClass: 'grid-level-0', label: 'Level 1' },
+                { rows: 4, cols: 4, pairs: 8, gridClass: 'grid-level-1', label: 'Level 2' },
+                { rows: 4, cols: 5, pairs: 10, gridClass: 'grid-level-2', label: 'Level 3' },
+                { rows: 4, cols: 6, pairs: 12, gridClass: 'grid-level-3', label: 'Level 4' },
+                { rows: 5, cols: 6, pairs: 15, gridClass: 'grid-level-4', label: 'Level 5' },
+                { rows: 6, cols: 6, pairs: 18, gridClass: 'grid-level-5', label: 'Level 6' }
+            ];
 
-    <!-- toast -->
-    <div id="toastMsg"></div>
-  </div>
+            let currentLevelIndex = 0;
+            let currentDifficulty = 0;
+            let cardsArray = [];
+            let hasFlippedCard = false, lockBoard = false, firstCard = null, secondCard = null;
+            let moves = 0, secondsElapsed = 0, matchedCount = 0, totalPairs = 0;
+            let timerInterval = null, gameActive = true;
 
-  <script>
-    (function(){
-      "use strict";
-      // ----- 6 LEVELS -----
-      const levelOrder = [0,1,2,3,4,5]; // 6 levels
-      const levelConfig = [
-        { rows:3, cols:4, pairs:6, gridClass:'grid-level-0', label:'Level 1' },
-        { rows:4, cols:4, pairs:8, gridClass:'grid-level-1', label:'Level 2' },
-        { rows:4, cols:5, pairs:10, gridClass:'grid-level-2', label:'Level 3' },
-        { rows:4, cols:6, pairs:12, gridClass:'grid-level-3', label:'Level 4' },
-        { rows:5, cols:6, pairs:15, gridClass:'grid-level-4', label:'Level 5' },
-        { rows:6, cols:6, pairs:18, gridClass:'grid-level-5', label:'Level 6' }
-      ];
+            // DOM refs
+            const board = document.getElementById('game-board');
+            const movesSpan = document.getElementById('moves');
+            const timeSpan = document.getElementById('time');
+            const restartBtn = document.getElementById('restartBtn');
+            const winModal = document.getElementById('win-modal');
+            const victoryModal = document.getElementById('victory-modal');
+            const nextBtn = document.getElementById('nextLevelBtn');
+            const cancelBtn = document.getElementById('cancelModalBtn');
+            const finalMoves = document.getElementById('finalMovesSpan');
+            const finalTime = document.getElementById('finalTimeSpan');
+            const nextInfo = document.getElementById('nextLevelInfo');
+            const levelInd = document.getElementById('levelIndicator');
+            const fullResetBtn = document.getElementById('fullResetBtn');
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            const pairsMatched = document.getElementById('pairsMatched');
+            const totalPairsSpan = document.getElementById('totalPairsSpan');
+            const diffBtns = document.querySelectorAll('[data-diff]');
+            const toast = document.getElementById('toastMsg');
+            const levelDots = document.getElementById('levelDots');
 
-      let currentLevelIndex = 0;
-      let currentDifficulty = 0;
-      let cardsArray = [];
-      let hasFlippedCard = false, lockBoard = false, firstCard = null, secondCard = null;
-      let moves = 0, secondsElapsed = 0, matchedCount = 0, totalPairs = 0;
-      let timerInterval = null, gameActive = true;
+            function showToast(msg, dur = 1800) {
+                toast.textContent = msg;
+                toast.classList.add('show');
+                clearTimeout(toast._hide);
+                toast._hide = setTimeout(() => toast.classList.remove('show'), dur);
+            }
 
-      // DOM refs
-      const board = document.getElementById('game-board');
-      const movesSpan = document.getElementById('moves');
-      const timeSpan = document.getElementById('time');
-      const restartBtn = document.getElementById('restartBtn');
-      const winModal = document.getElementById('win-modal');
-      const victoryModal = document.getElementById('victory-modal');
-      const nextBtn = document.getElementById('nextLevelBtn');
-      const cancelBtn = document.getElementById('cancelModalBtn');
-      const finalMoves = document.getElementById('finalMovesSpan');
-      const finalTime = document.getElementById('finalTimeSpan');
-      const nextInfo = document.getElementById('nextLevelInfo');
-      const levelInd = document.getElementById('levelIndicator');
-      const fullResetBtn = document.getElementById('fullResetBtn');
-      const themeToggle = document.getElementById('themeToggle');
-      const themeIcon = document.getElementById('themeIcon');
-      const pairsMatched = document.getElementById('pairsMatched');
-      const totalPairsSpan = document.getElementById('totalPairsSpan');
-      const diffBtns = document.querySelectorAll('[data-diff]');
-      const toast = document.getElementById('toastMsg');
-      const levelDots = document.getElementById('levelDots');
+            // ----- ICON LIBRARY (Font Awesome) -----
+            const iconSet = [
+                'fa-dragon', 'fa-cat', 'fa-dog', 'fa-fish', 'fa-crow', 'fa-hippo', 'fa-otter', 'fa-spider',
+                'fa-crown', 'fa-gem', 'fa-meteor', 'fa-moon', 'fa-sun', 'fa-cloud', 'fa-bolt', 'fa-snowflake',
+                'fa-heart', 'fa-star', 'fa-fire', 'fa-water', 'fa-leaf', 'fa-tree', 'fa-seedling', 'fa-feather',
+                'fa-guitar', 'fa-drum', 'fa-music', 'fa-headphones', 'fa-microphone', 'fa-cloud-moon',
+                'fa-car', 'fa-plane', 'fa-rocket', 'fa-ship', 'fa-submarine', 'fa-bicycle', 'fa-tractor',
+                'fa-robot', 'fa-gamepad', 'fa-dice', 'fa-puzzle-piece', 'fa-chess-queen', 'fa-chess-knight',
+                'fa-wand-sparkles', 'fa-hat-wizard', 'fa-skull', 'fa-ghost', 'fa-tree', 'fa-leaf-maple',
+                'fa-campground', 'fa-frog', 'fa-lion', 'fa-monkey', 'fa-paw', 'fa-rainbow', 'fa-feather-pointed'
+            ];
 
-      function showToast(msg, dur=1800) {
-        toast.textContent = msg;
-        toast.classList.add('show');
-        clearTimeout(toast._hide);
-        toast._hide = setTimeout(() => toast.classList.remove('show'), dur);
-      }
+            function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; } return a; }
 
-      // ----- ICON LIBRARY (Font Awesome) -----
-      const iconSet = [
-        'fa-dragon', 'fa-cat', 'fa-dog', 'fa-fish', 'fa-crow', 'fa-hippo', 'fa-otter', 'fa-spider',
-        'fa-crown', 'fa-gem', 'fa-meteor', 'fa-moon', 'fa-sun', 'fa-cloud', 'fa-bolt', 'fa-snowflake',
-        'fa-heart', 'fa-star', 'fa-fire', 'fa-water', 'fa-leaf', 'fa-tree', 'fa-seedling', 'fa-feather',
-        'fa-guitar', 'fa-drum', 'fa-music', 'fa-headphones', 'fa-microphone', 'fa-cloud-moon',
-        'fa-car', 'fa-plane', 'fa-rocket', 'fa-ship', 'fa-submarine', 'fa-bicycle', 'fa-tractor',
-        'fa-robot', 'fa-gamepad', 'fa-dice', 'fa-puzzle-piece', 'fa-chess-queen', 'fa-chess-knight',
-        'fa-wand-sparkles', 'fa-hat-wizard', 'fa-skull', 'fa-ghost', 'fa-tree', 'fa-leaf-maple',
-        'fa-campground', 'fa-frog', 'fa-lion', 'fa-monkey', 'fa-paw', 'fa-rainbow', 'fa-feather-pointed'
-      ];
+            function generateDeck() {
+                const needed = levelConfig[currentDifficulty].pairs;
+                let pool = shuffle([...iconSet]).slice(0, needed);
+                let deck = shuffle([...pool, ...pool]);
+                return deck;
+            }
 
-      function shuffle(a){ for(let i=a.length-1; i>0; i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+            function updatePairCounter() { pairsMatched.textContent = matchedCount; totalPairsSpan.textContent = totalPairs; }
 
-      function generateDeck(){
-        const needed = levelConfig[currentDifficulty].pairs;
-        let pool = shuffle([...iconSet]).slice(0, needed);
-        let deck = shuffle([...pool, ...pool]);
-        return deck;
-      }
+            function stopTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
 
-      function updatePairCounter(){ pairsMatched.textContent = matchedCount; totalPairsSpan.textContent = totalPairs; }
+            function resetBoardState() { hasFlippedCard = false; firstCard = null; secondCard = null; }
 
-      function stopTimer(){ if(timerInterval){ clearInterval(timerInterval); timerInterval=null; } }
+            function updateLevelDots() {
+                levelDots.innerHTML = '';
+                for (let i = 0; i < levelOrder.length; i++) {
+                    const dot = document.createElement('span');
+                    dot.className = 'level-dot';
+                    if (i === currentLevelIndex) dot.classList.add('active');
+                    else if (i < currentLevelIndex) dot.classList.add('done');
+                    levelDots.appendChild(dot);
+                }
+            }
 
-      function resetBoardState(){ hasFlippedCard=false; firstCard=null; secondCard=null; }
+            function buildBoard() {
+                board.innerHTML = '';
+                const cfg = levelConfig[currentDifficulty];
+                const deck = generateDeck();
+                totalPairs = cfg.pairs; matchedCount = 0; moves = 0; secondsElapsed = 0;
+                stopTimer(); timerInterval = null;
+                movesSpan.textContent = '0'; timeSpan.textContent = '0s'; updatePairCounter();
+                hasFlippedCard = false; lockBoard = false; firstCard = secondCard = null; gameActive = true;
 
-      function updateLevelDots() {
-        levelDots.innerHTML = '';
-        for(let i=0; i<levelOrder.length; i++) {
-          const dot = document.createElement('span');
-          dot.className = 'level-dot';
-          if(i === currentLevelIndex) dot.classList.add('active');
-          else if(i < currentLevelIndex) dot.classList.add('done');
-          levelDots.appendChild(dot);
-        }
-      }
+                board.className = `game-grid ${cfg.gridClass}`;
+                cardsArray = [];
+                deck.forEach((iconClass, idx) => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.dataset.idx = idx;
+                    card.dataset.icon = iconClass;
+                    const inner = document.createElement('div');
+                    inner.className = 'card-inner';
+                    inner.innerHTML = `<div class="card-front"><i class="fas ${iconClass}"></i></div><div class="card-back"><i class="fas fa-question-circle"></i></div>`;
+                    card.appendChild(inner);
+                    card.addEventListener('click', () => handleCardClick(card));
+                    board.appendChild(card);
+                    cardsArray.push(card);
+                });
+                levelInd.textContent = `${currentLevelIndex + 1}/${levelOrder.length}`;
+                updateLevelDots();
+            }
 
-      function buildBoard(){
-        board.innerHTML = '';
-        const cfg = levelConfig[currentDifficulty];
-        const deck = generateDeck();
-        totalPairs = cfg.pairs; matchedCount=0; moves=0; secondsElapsed=0;
-        stopTimer(); timerInterval=null;
-        movesSpan.textContent='0'; timeSpan.textContent='0s'; updatePairCounter();
-        hasFlippedCard=false; lockBoard=false; firstCard=secondCard=null; gameActive=true;
+            function startTimerIfNeeded() {
+                if (!timerInterval && gameActive && moves === 0) {
+                    timerInterval = setInterval(() => {
+                        if (gameActive) { secondsElapsed++; timeSpan.textContent = secondsElapsed + 's'; }
+                    }, 1000);
+                }
+            }
 
-        board.className = `game-grid ${cfg.gridClass}`;
-        cardsArray = [];
-        deck.forEach((iconClass, idx) => {
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.dataset.idx = idx;
-          card.dataset.icon = iconClass;
-          const inner = document.createElement('div');
-          inner.className = 'card-inner';
-          inner.innerHTML = `<div class="card-front"><i class="fas ${iconClass}"></i></div><div class="card-back"><i class="fas fa-question-circle"></i></div>`;
-          card.appendChild(inner);
-          card.addEventListener('click', ()=> handleCardClick(card));
-          board.appendChild(card);
-          cardsArray.push(card);
-        });
-        levelInd.textContent = `${currentLevelIndex+1}/${levelOrder.length}`;
-        updateLevelDots();
-      }
+            function handleCardClick(card) {
+                if (lockBoard || !gameActive) return;
+                if (card.classList.contains('matched') || card.classList.contains('flipped')) return;
+                startTimerIfNeeded();
 
-      function startTimerIfNeeded(){
-        if(!timerInterval && gameActive && moves===0){
-          timerInterval = setInterval(()=>{
-            if(gameActive){ secondsElapsed++; timeSpan.textContent = secondsElapsed+'s'; }
-          },1000);
-        }
-      }
+                if (!hasFlippedCard) {
+                    card.classList.add('flipped');
+                    hasFlippedCard = true;
+                    firstCard = card;
+                    return;
+                }
+                secondCard = card;
+                card.classList.add('flipped');
+                moves++;
+                movesSpan.textContent = moves;
 
-      function handleCardClick(card){
-        if(lockBoard || !gameActive) return;
-        if(card.classList.contains('matched') || card.classList.contains('flipped')) return;
-        startTimerIfNeeded();
+                const match = firstCard.dataset.icon === secondCard.dataset.icon;
+                if (match) {
+                    firstCard.classList.add('matched'); secondCard.classList.add('matched');
+                    matchedCount++; updatePairCounter();
+                    resetBoardState();
+                    if (matchedCount === totalPairs) levelComplete();
+                } else {
+                    lockBoard = true;
+                    setTimeout(() => {
+                        if (firstCard) firstCard.classList.remove('flipped');
+                        if (secondCard) secondCard.classList.remove('flipped');
+                        resetBoardState();
+                        lockBoard = false;
+                    }, 750);
+                }
+            }
 
-        if(!hasFlippedCard){
-          card.classList.add('flipped');
-          hasFlippedCard = true;
-          firstCard = card;
-          return;
-        }
-        secondCard = card;
-        card.classList.add('flipped');
-        moves++;
-        movesSpan.textContent = moves;
+            function levelComplete() {
+                if (!gameActive) return;
+                gameActive = false; stopTimer();
+                finalMoves.textContent = moves;
+                finalTime.textContent = secondsElapsed + 's';
+                const last = currentLevelIndex === levelOrder.length - 1;
+                if (last) {
+                    nextInfo.innerHTML = '🌟 Legendary! You\'ve dominated all 6 levels! 🌟<br>Claim your final trophy!';
+                    nextBtn.innerHTML = '<i class="fas fa-crown mr-2"></i> Claim Victory';
+                } else {
+                    const nextLevel = levelConfig[currentLevelIndex + 1];
+                    nextInfo.innerHTML = `🎉 Incredible! Next: <strong>${nextLevel.label}</strong> with <strong>${nextLevel.pairs} pairs</strong>! 🚀`;
+                    nextBtn.innerHTML = '<i class="fas fa-arrow-right mr-2"></i> Advance to Next Level';
+                }
+                winModal.classList.remove('hidden');
+            }
 
-        const match = firstCard.dataset.icon === secondCard.dataset.icon;
-        if(match){
-          firstCard.classList.add('matched'); secondCard.classList.add('matched');
-          matchedCount++; updatePairCounter();
-          resetBoardState();
-          if(matchedCount === totalPairs) levelComplete();
-        } else {
-          lockBoard = true;
-          setTimeout(()=>{
-            if(firstCard) firstCard.classList.remove('flipped');
-            if(secondCard) secondCard.classList.remove('flipped');
-            resetBoardState();
-            lockBoard = false;
-          },750);
-        }
-      }
+            function goToNextLevel() {
+                winModal.classList.add('hidden');
+                if (currentLevelIndex === levelOrder.length - 1) { victoryModal.classList.remove('hidden'); return; }
+                currentLevelIndex++;
+                currentDifficulty = levelOrder[currentLevelIndex];
+                updateDiffActive(currentDifficulty);
+                resetGameStateForNewLevel();
+                buildBoard();
+                showToast(`✨ Moving to ${levelConfig[currentDifficulty].label}!`, 1800);
+            }
 
-      function levelComplete(){
-        if(!gameActive) return;
-        gameActive = false; stopTimer();
-        finalMoves.textContent = moves;
-        finalTime.textContent = secondsElapsed+'s';
-        const last = currentLevelIndex === levelOrder.length-1;
-        if(last){
-          nextInfo.innerHTML = '🌟 Legendary! You\'ve dominated all 6 levels! 🌟<br>Claim your final trophy!';
-          nextBtn.innerHTML = '<i class="fas fa-crown mr-2"></i> Claim Victory';
-        } else {
-          const nextLevel = levelConfig[currentLevelIndex+1];
-          nextInfo.innerHTML = `🎉 Incredible! Next: <strong>${nextLevel.label}</strong> with <strong>${nextLevel.pairs} pairs</strong>! 🚀`;
-          nextBtn.innerHTML = '<i class="fas fa-arrow-right mr-2"></i> Advance to Next Level';
-        }
-        winModal.classList.remove('hidden');
-      }
+            function resetGameStateForNewLevel() { stopTimer(); timerInterval = null; hasFlippedCard = false; lockBoard = false; firstCard = null; secondCard = null; gameActive = true; }
 
-      function goToNextLevel(){
-        winModal.classList.add('hidden');
-        if(currentLevelIndex === levelOrder.length-1){ victoryModal.classList.remove('hidden'); return; }
-        currentLevelIndex++;
-        currentDifficulty = levelOrder[currentLevelIndex];
-        updateDiffActive(currentDifficulty);
-        resetGameStateForNewLevel();
-        buildBoard();
-        showToast(`✨ Moving to ${levelConfig[currentDifficulty].label}!`, 1800);
-      }
+            function restartCurrentLevel() { stopTimer(); timerInterval = null; hasFlippedCard = false; lockBoard = false; firstCard = secondCard = null; gameActive = true; buildBoard(); winModal.classList.add('hidden'); victoryModal.classList.add('hidden'); showToast('🔄 Level restarted!', 1200); }
 
-      function resetGameStateForNewLevel(){ stopTimer(); timerInterval=null; hasFlippedCard=false; lockBoard=false; firstCard=null; secondCard=null; gameActive=true; }
+            function fullGameReset() { currentLevelIndex = 0; currentDifficulty = levelOrder[0]; updateDiffActive(currentDifficulty); resetGameStateForNewLevel(); buildBoard(); victoryModal.classList.add('hidden'); winModal.classList.add('hidden'); showToast('🌟 Fresh journey! Starting from Level 1 🌟', 1600); }
 
-      function restartCurrentLevel(){ stopTimer(); timerInterval=null; hasFlippedCard=false; lockBoard=false; firstCard=secondCard=null; gameActive=true; buildBoard(); winModal.classList.add('hidden'); victoryModal.classList.add('hidden'); showToast('🔄 Level restarted!', 1200); }
+            function updateDiffActive(diff) { diffBtns.forEach(b => { const v = parseInt(b.dataset.diff); if (v === diff) b.classList.add('active'); else b.classList.remove('active'); }); }
 
-      function fullGameReset(){ currentLevelIndex=0; currentDifficulty=levelOrder[0]; updateDiffActive(currentDifficulty); resetGameStateForNewLevel(); buildBoard(); victoryModal.classList.add('hidden'); winModal.classList.add('hidden'); showToast('🌟 Fresh journey! Starting from Level 1 🌟',1600); }
+            function setDifficultyAndReset(diff) {
+                if (diff === currentDifficulty && currentLevelIndex === levelOrder.indexOf(diff)) { restartCurrentLevel(); return; }
+                currentDifficulty = diff; currentLevelIndex = levelOrder.indexOf(diff); if (currentLevelIndex < 0) currentLevelIndex = 0;
+                updateDiffActive(currentDifficulty);
+                resetGameStateForNewLevel();
+                buildBoard();
+                winModal.classList.add('hidden'); victoryModal.classList.add('hidden');
+                showToast(`🎮 Switched to ${levelConfig[currentDifficulty].label}.`, 1500);
+            }
 
-      function updateDiffActive(diff){ diffBtns.forEach(b=>{ const v=parseInt(b.dataset.diff); if(v===diff) b.classList.add('active'); else b.classList.remove('active'); }); }
+            // theme
+            function initTheme() { const dark = localStorage.getItem('memoryTheme') === 'dark'; document.body.classList.toggle('dark-mode', dark); themeIcon.className = dark ? 'fas fa-sun' : 'fas fa-moon'; }
+            function toggleTheme() { const dark = document.body.classList.toggle('dark-mode'); localStorage.setItem('memoryTheme', dark ? 'dark' : 'light'); themeIcon.className = dark ? 'fas fa-sun' : 'fas fa-moon'; showToast(dark ? '🌙 Dark mode' : '☀️ Light mode', 1000); }
 
-      function setDifficultyAndReset(diff){
-        if(diff===currentDifficulty && currentLevelIndex===levelOrder.indexOf(diff)){ restartCurrentLevel(); return; }
-        currentDifficulty=diff; currentLevelIndex=levelOrder.indexOf(diff); if(currentLevelIndex<0) currentLevelIndex=0;
-        updateDiffActive(currentDifficulty);
-        resetGameStateForNewLevel();
-        buildBoard();
-        winModal.classList.add('hidden'); victoryModal.classList.add('hidden');
-        showToast(`🎮 Switched to ${levelConfig[currentDifficulty].label}.`, 1500);
-      }
+            // event listeners
+            restartBtn.addEventListener('click', restartCurrentLevel);
+            nextBtn.addEventListener('click', goToNextLevel);
+            cancelBtn.addEventListener('click', () => winModal.classList.add('hidden'));
+            fullResetBtn.addEventListener('click', fullGameReset);
+            themeToggle.addEventListener('click', toggleTheme);
+            diffBtns.forEach(b => b.addEventListener('click', () => setDifficultyAndReset(parseInt(b.dataset.diff))));
 
-      // theme
-      function initTheme(){ const dark = localStorage.getItem('memoryTheme')==='dark'; document.body.classList.toggle('dark-mode', dark); themeIcon.className = dark ? 'fas fa-sun' : 'fas fa-moon'; }
-      function toggleTheme(){ const dark = document.body.classList.toggle('dark-mode'); localStorage.setItem('memoryTheme', dark?'dark':'light'); themeIcon.className = dark ? 'fas fa-sun' : 'fas fa-moon'; showToast(dark?'🌙 Dark mode':'☀️ Light mode',1000); }
-
-      // event listeners
-      restartBtn.addEventListener('click', restartCurrentLevel);
-      nextBtn.addEventListener('click', goToNextLevel);
-      cancelBtn.addEventListener('click', ()=> winModal.classList.add('hidden'));
-      fullResetBtn.addEventListener('click', fullGameReset);
-      themeToggle.addEventListener('click', toggleTheme);
-      diffBtns.forEach(b=> b.addEventListener('click', ()=> setDifficultyAndReset(parseInt(b.dataset.diff))));
-
-      // init
-      initTheme();
-      currentLevelIndex=0; currentDifficulty=levelOrder[0]; updateDiffActive(currentDifficulty); buildBoard();
-    })();
-  </script>
+            // init
+            initTheme();
+            currentLevelIndex = 0; currentDifficulty = levelOrder[0]; updateDiffActive(currentDifficulty); buildBoard();
+        })();
+    </script>
 </body>
+
 </html>

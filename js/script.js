@@ -1,4 +1,4 @@
-    <script>
+
         (function () {
             "use strict";
             // ----- 6 LEVELS -----
@@ -217,4 +217,4 @@
             initTheme();
             currentLevelIndex = 0; currentDifficulty = levelOrder[0]; updateDiffActive(currentDifficulty); buildBoard();
         })();
-    </script>
+    

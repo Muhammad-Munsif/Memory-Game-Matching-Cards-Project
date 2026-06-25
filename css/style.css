@@ -1,4 +1,4 @@
-<style>
+
     /* ----- global reset & better touch ----- */
     * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
     body { transition: background 0.3s, color 0.2s; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
@@ -206,4 +206,4 @@
     .level-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.2); transition: 0.3s; flex-shrink: 0; }
     .level-dot.active { background: #fbbf24; box-shadow: 0 0 12px rgba(251,191,36,0.5); }
     .level-dot.done { background: #34d399; }
-  </style>
+  

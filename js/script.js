@@ -1,4 +1,4 @@
-<script>
+
         (function () {
             "use strict";
             // ----- 10 LEVELS -----
@@ -362,4 +362,3 @@
             // Initialize star rating
             updateStarRating(0);
         })();
-    </script>

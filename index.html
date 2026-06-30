@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>Memory Odyssey · 6-Column Grid</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        /* ----- global reset & base ----- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            transition: background 0.4s ease, color 0.3s ease;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(145deg, #e0e7ff, #c7d2fe, #a5b4fc);
+        }
+
+        /* ----- LIGHT MODE (default) ----- */
+        .navbar,
+        .sidebar,
+        .footer {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border-color: rgba(0, 0, 0, 0.06);
+        }
+        .stat-panel {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            color: #1e293b;
+        }
+        .card-back {
+            background: linear-gradient(145deg, #ffffff, #f1f5f9);
+            border: 2px solid rgba(99, 102, 241, 0.2);
+        }
+        .card-front {
+            background: linear-gradient(145deg, #ffd966, #fbbf24);
+            color: #1e1a2f;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+        }
+        .difficulty-btn {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            color: #1e293b;
+        }
+        .difficulty-btn.active {
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: white;
+            border-color: #a78bfa;
+            box-shadow: 0 8px 30px #3b82f660;
+        }
+        .sidebar-btn {
+            background: rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            color: #334155;
+        }
+        .sidebar-btn:hover {
+            background: rgba(0, 0, 0, 0.08);
+            color: #0f172a;
+        }
+        .sidebar-btn.active {
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: white;
+            border-color: #a78bfa;
+        }
+        .dropdown-content {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        .dropdown-content button {
+            color: #1e293b;
+        }
+        .dropdown-content button:hover {
+            background: rgba(59, 130, 246, 0.08);
+        }
+        .dropdown-content button.active-drop {
+            background: rgba(59, 130, 246, 0.12);
+            color: #3b82f6;
+        }
+        .win-modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            color: #1e293b;
+        }
+        .footer {
+            color: #475569;
+        }
+        .stat-panel .value {
+            color: #1e293b;
+        }
+        .level-dot {
+            background: rgba(0, 0, 0, 0.15);
+        }
+        .level-dot.active {
+            background: #fbbf24;
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+        }
+        .level-dot.done {
+            background: #34d399;
+        }
+        #toastMsg {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+        }
+        .navbar h1 span {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .navbar h1 i {
+            color: #4f46e5;
+        }
+
+        /* ----- DARK MODE ----- */
+        body.dark-mode {
+            background: linear-gradient(145deg, #0b1120, #141d3a, #1a153a) !important;
+        }
+        body.dark-mode .navbar,
+        body.dark-mode .sidebar,
+        body.dark-mode .footer {
+            background: rgba(10, 14, 30, 0.7);
+            backdrop-filter: blur(12px);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+        body.dark-mode .stat-panel {
+            background: rgba(10, 14, 30, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 215, 0, 0.08);
+            color: #e2e8f0;
+        }
+        body.dark-mode .stat-panel .value {
+            color: #f1f5f9;
+        }
+        body.dark-mode .card-back {
+            background: linear-gradient(145deg, #28344a, #1a2538);
+            border: 1px solid rgba(255, 215, 0, 0.15);
+        }
+        body.dark-mode .card-front {
+            background: linear-gradient(145deg, #fbbf24, #f59e0b);
+            color: #13162b;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+        }
+        body.dark-mode .difficulty-btn {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(8px);
+            color: #cbd5f0;
+            border: 1px solid #3d4b66;
+        }
+        body.dark-mode .difficulty-btn.active {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            border-color: #a78bfa;
+            box-shadow: 0 0 30px #7c3aed60;
+        }
+        body.dark-mode .sidebar-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            color: #94a3b8;
+        }
+        body.dark-mode .sidebar-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #e2e8f0;
+        }
+        body.dark-mode .sidebar-btn.active {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            border-color: #a78bfa;
+        }
+        body.dark-mode .dropdown-content {
+            background: rgba(20, 30, 50, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        body.dark-mode .dropdown-content button {
+            color: #e2e8f0;
+        }
+        body.dark-mode .dropdown-content button:hover {
+            background: rgba(59, 130, 246, 0.2);
+        }
+        body.dark-mode .dropdown-content button.active-drop {
+            background: rgba(59, 130, 246, 0.25);
+            color: #60a5fa;
+        }
+        body.dark-mode .win-modal-content {
+            background: linear-gradient(145deg, #1a2642, #0e162b);
+            color: #f0f4ff;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+        body.dark-mode .footer {
+            color: #94a3b8;
+        }
+        body.dark-mode .level-dot {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        body.dark-mode .level-dot.active {
+            background: #fbbf24;
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+        }
+        body.dark-mode .level-dot.done {
+            background: #34d399;
+        }
+        body.dark-mode #toastMsg {
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        body.dark-mode .navbar h1 span {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        body.dark-mode .navbar h1 i {
+            color: #fbbf24;
+        }
+
+        /* ----- Card styles ----- */
+        .card {
+            perspective: 1400px;
+            cursor: pointer;
+            aspect-ratio: 1/1;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .card:hover {
+            transform: scale(1.04) translateY(-2px);
+        }
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            border-radius: 1.2rem;
+        }
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        .card-front,
+        .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        }
+        .card-front i {
+            font-size: 2.4rem;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+        .card-back i {
+            font-size: 3rem;
+            color: #818cf8;
+            opacity: 0.5;
+            transition: 0.3s;
+        }
+        .card:hover .card-back i {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+        .card.matched {
+            opacity: 0.7;
+            cursor: default;
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.4));
+            transform: scale(0.95);
+            transition: 0.3s;
+        }
+        .card.matched .card-front i {
+            animation: matchGlow 0.6s ease;
+        }
+        @keyframes matchGlow {
+            0% {
+                transform: scale(1) rotate(0deg);
+                filter: brightness(1);
+            }
+            40% {
+                transform: scale(1.3) rotate(8deg);
+                filter: brightness(1.4);
+                text-shadow: 0 0 30px gold;
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                filter: brightness(1);
+            }
+        }
+
+        /* ----- Game grid - 6 columns ----- */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 0.6rem;
+            justify-content: center;
+            margin: 0.5rem auto;
+            width: 100%;
+            max-width: 780px;
+        }
+        .card {
+            min-height: 70px;
+        }
+        .card-front i,
+        .card-back i {
+            font-size: 1.6rem;
+        }
+
+        @media (min-width: 480px) {
+            .card-front i,
+            .card-back i {
+                font-size: 2rem;
+            }
+            .card {
+                min-height: 80px;
+            }
+        }
+        @media (min-width: 768px) {
+            .card-front i,
+            .card-back i {
+                font-size: 2.8rem;
+            }
+            .card {
+                min-height: 100px;
+            }
+        }
+        @media (max-width: 420px) {
+            .game-grid {
+                gap: 0.35rem;
+            }
+            .card {
+                min-height: 50px;
+            }
+            .card-front i,
+            .card-back i {
+                font-size: 1rem;
+            }
+        }
+        @media (max-width: 360px) {
+            .card-front i,
+            .card-back i {
+                font-size: 0.8rem;
+            }
+            .card {
+                min-height: 42px;
+            }
+        }
+
+        /* ----- UI Components ----- */
+        .stat-panel {
+            border-radius: 1.2rem;
+            transition: 0.25s;
+            padding: 0.25rem 0.6rem;
+            font-weight: 700;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .stat-panel .value {
+            font-size: 0.9rem;
+        }
+
+        .difficulty-btn {
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-weight: 700;
+            backdrop-filter: blur(8px);
+            padding: 0.3rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+
+        .navbar {
+            padding: 0.5rem 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid;
+        }
+        .sidebar {
+            padding: 1rem 0.5rem;
+            width: 200px;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+            max-height: calc(100vh - 120px);
+            position: sticky;
+            top: 70px;
+            border-right: 1px solid;
+        }
+        .sidebar.closed {
+            transform: translateX(-100%);
+            position: fixed;
+            z-index: 90;
+            height: 100%;
+            top: 60px;
+        }
+        .sidebar-toggle {
+            display: none;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        .footer {
+            padding: 0.8rem 1rem;
+            text-align: center;
+            font-size: 0.85rem;
+            margin-top: auto;
+            border-top: 1px solid;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 110%;
+            left: 0;
+            min-width: 160px;
+            backdrop-filter: blur(16px);
+            border-radius: 12px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+            z-index: 50;
+            overflow: hidden;
+        }
+        .dropdown-content.show {
+            display: block;
+        }
+        .dropdown-content button {
+            display: block;
+            width: 100%;
+            padding: 0.5rem 1rem;
+            text-align: left;
+            background: transparent;
+            border: none;
+            font-weight: 600;
+            transition: 0.15s;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .sidebar-btn {
+            display: block;
+            width: 100%;
+            padding: 0.35rem 0.5rem;
+            text-align: center;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: 0.2s;
+            cursor: pointer;
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+        }
+        .sidebar-btn .star-indicator {
+            float: right;
+            font-size: 0.6rem;
+        }
+
+        .modal-pop {
+            animation: modalFade 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes modalFade {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        .win-modal-content {
+            border-radius: 2rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+            margin: 6px 0;
+        }
+        .star-rating i {
+            font-size: 1.8rem;
+            transition: 0.3s;
+        }
+        .star-rating i.filled {
+            color: #fbbf24;
+            text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+        }
+        .star-rating i.empty {
+            color: rgba(0, 0, 0, 0.15);
+        }
+        body.dark-mode .star-rating i.empty {
+            color: rgba(255, 255, 255, 0.15);
+        }
+
+        .level-dots {
+            display: flex;
+            gap: 3px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .level-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            transition: 0.3s;
+            flex-shrink: 0;
+        }
+
+        #toastMsg {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.5rem 1.5rem;
+            border-radius: 60px;
+            font-size: 0.85rem;
+            opacity: 0;
+            transition: opacity 0.4s, transform 0.3s;
+            pointer-events: none;
+            z-index: 999;
+            white-space: nowrap;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+        }
+        #toastMsg.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            overflow: hidden;
+        }
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            animation: confettiFall linear forwards;
+        }
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-20px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Responsive sidebar */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 60px;
+                left: 0;
+                width: 200px;
+                height: calc(100vh - 60px);
+                transform: translateX(-100%);
+                z-index: 90;
+                padding: 0.5rem;
+                border-right: 1px solid;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .sidebar-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .main-content {
+                width: 100%;
+            }
+        }
+        @media (min-width: 769px) {
+            .sidebar {
+                display: block !important;
+                transform: translateX(0) !important;
+                position: sticky;
+                top: 70px;
+                height: calc(100vh - 120px);
+            }
+            .sidebar-toggle {
+                display: none !important;
+            }
+        }
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(128, 128, 128, 0.3);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="text-lg md:text-2xl font-extrabold drop-shadow-xl flex items-center gap-2">
+                <i class="fa-solid fa-brain text-yellow-300 animate-pulse"></i>
+                <span>Memory Odyssey</span>
+            </h1>
+        </div>
+        <div class="flex items-center gap-1 md:gap-2">
+            <button id="soundToggle" class="bg-white/20 backdrop-blur-md rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center text-sm hover:bg-white/40 transition-all shadow-xl border border-white/10">
+                <i id="soundIcon" class="fas fa-volume-up"></i>
+            </button>
+            <button id="themeToggle" class="bg-white/20 backdrop-blur-md rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center text-sm hover:bg-white/40 transition-all shadow-xl border border-white/10">
+                <i id="themeIcon" class="fas fa-moon"></i>
+            </button>
+        </div>
+    </nav>
+
+    <div class="flex flex-1">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="mb-3 px-2">
+                <div class="text-xs font-bold uppercase tracking-wider opacity-60 mb-2">Difficulty</div>
+                <div class="dropdown relative" id="difficultyDropdown">
+                    <button class="difficulty-btn w-full text-center" id="dropdownToggle">
+                        <span id="selectedDifficultyLabel">Easy</span>
+                        <i class="fas fa-chevron-down text-xs ml-1"></i>
+                    </button>
+                    <div class="dropdown-content" id="dropdownContent">
+                        <button data-diff="easy" class="active-drop">🌱 Easy</button>
+                        <button data-diff="medium">⚡ Medium</button>
+                        <button data-diff="hard">🔥 Hard</button>
+                    </div>
+                </div>
+            </div>
+            <div class="px-2">
+                <div class="text-xs font-bold uppercase tracking-wider opacity-60 mb-2">Levels</div>
+                <div id="sidebarLevels"></div>
+            </div>
+            <div class="mt-auto px-2 pt-2 border-t border-white/10">
+                <button id="restartBtn" class="sidebar-btn text-xs bg-white/10 hover:bg-white/20">
+                    <i class="fas fa-rotate mr-1"></i> Restart
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content flex-1 p-2 md:p-4">
+            <!-- Stats -->
+            <div class="flex flex-wrap justify-center gap-1 md:gap-2 mb-3">
+                <div class="stat-panel"><i class="fas fa-hand-peace"></i><span>MOVES: <span id="moves" class="value">0</span></span></div>
+                <div class="stat-panel"><i class="fas fa-hourglass-half"></i><span>TIME: <span id="time" class="value">0s</span></span></div>
+                <div class="stat-panel"><i class="fas fa-layer-group"></i><span><span id="difficultyLabel">Easy</span> <span id="levelIndicator" class="value">1/10</span></span></div>
+                <div class="stat-panel"><i class="fas fa-star"></i><span>PAIRS: <span id="pairsMatched" class="value">0</span>/<span id="totalPairsSpan" class="value">0</span></span></div>
+                <div class="stat-panel"><span id="levelDots" class="level-dots"></span></div>
+            </div>
+
+            <!-- Game Board -->
+            <div id="game-board" class="game-grid"></div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© 2026 Memory Odyssey · 6-Column Grid · All Devices</p>
+    </footer>
+
+    <!-- Modals -->
+    <div id="win-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4">
+        <div class="win-modal-content modal-pop">
+            <div class="text-4xl md:text-6xl mb-2">🏆</div>
+            <h2 class="text-xl md:text-3xl font-extrabold">Level Complete!</h2>
+            <div class="star-rating" id="starRating">
+                <i class="fas fa-star empty"></i>
+                <i class="fas fa-star empty"></i>
+                <i class="fas fa-star empty"></i>
+            </div>
+            <div class="bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 rounded-xl p-2 my-2 text-xs md:text-base">
+                <p>✨ <strong id="finalMovesSpan">0</strong> moves &nbsp;|&nbsp; ⏱️ <strong id="finalTimeSpan">0s</strong></p>
+            </div>
+            <div id="nextLevelInfo" class="mb-3 text-xs md:text-md font-medium"></div>
+            <button id="nextLevelBtn" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 text-white font-bold py-2.5 px-5 rounded-xl transition-all shadow-lg w-full flex items-center justify-center gap-2 text-sm md:text-base"><i class="fas fa-arrow-right"></i> Next Level</button>
+            <button id="cancelModalBtn" class="mt-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 text-xs md:text-sm transition">Continue Playing</button>
+        </div>
+    </div>
+
+    <div id="victory-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-xl flex items-center justify-center z-50 p-4">
+        <div class="bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-gray-800 dark:to-gray-900 rounded-2xl p-6 md:p-8 max-w-sm w-full text-center shadow-2xl modal-pop border border-white/10">
+            <i class="fas fa-crown text-5xl md:text-6xl text-yellow-500 mb-2 animate-bounce"></i>
+            <h2 class="text-2xl md:text-3xl font-black text-purple-700 dark:text-purple-300">🏆 COMPLETE!</h2>
+            <p class="text-lg md:text-xl my-2">You conquered all 10 levels!</p>
+            <div class="flex justify-center gap-1 text-2xl my-2">⭐⭐⭐⭐⭐</div>
+            <p class="mb-4 text-sm md:text-base">Incredible memory unlocked ✨</p>
+            <button id="fullResetBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl w-full transition flex items-center justify-center gap-2 text-sm md:text-base"><i class="fas fa-play"></i> Play Again</button>
+        </div>
+    </div>
+
+    <div id="toastMsg"></div>
+
+    <script>
+        (function() {
+            "use strict";
+
+            // ----- DIFFICULTIES -----
+            const difficulties = {
+                easy: { label: 'Easy', icon: '🌱', basePairs: 3, levelMultiplier: 1.5 },
+                medium: { label: 'Medium', icon: '⚡', basePairs: 4, levelMultiplier: 1.8 },
+                hard: { label: 'Hard', icon: '🔥', basePairs: 5, levelMultiplier: 2.0 }
+            };
+
+            const levelOrder = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+            function generateLevelConfigs(diffKey) {
+                const diff = difficulties[diffKey];
+                const configs = [];
+                for (let i = 0; i < 10; i++) {
+                    const pairs = Math.round(diff.basePairs + (i * diff.levelMultiplier));
+                    configs.push({
+                        pairs: Math.max(pairs, 3),
+                        label: `Level ${i+1}`,
+                        icon: ['🌟', '⚡', '🔥', '🌀', '💎', '🌊', '🌙', '⭐', '👑', '🏆'][i]
+                    });
+                }
+                return configs;
+            }
+
+            let currentDifficulty = 'easy';
+            let currentLevelIndex = 0;
+            let levelConfigs = generateLevelConfigs('easy');
+            let cardsArray = [];
+            let hasFlippedCard = false,
+                lockBoard = false,
+                firstCard = null,
+                secondCard = null;
+            let moves = 0,
+                secondsElapsed = 0,
+                matchedCount = 0,
+                totalPairs = 0;
+            let timerInterval = null,
+                gameActive = true;
+            let soundEnabled = true;
+            let levelStars = [];
+
+            // DOM refs
+            const board = document.getElementById('game-board');
+            const movesSpan = document.getElementById('moves');
+            const timeSpan = document.getElementById('time');
+            const restartBtn = document.getElementById('restartBtn');
+            const winModal = document.getElementById('win-modal');
+            const victoryModal = document.getElementById('victory-modal');
+            const nextBtn = document.getElementById('nextLevelBtn');
+            const cancelBtn = document.getElementById('cancelModalBtn');
+            const finalMoves = document.getElementById('finalMovesSpan');
+            const finalTime = document.getElementById('finalTimeSpan');
+            const nextInfo = document.getElementById('nextLevelInfo');
+            const levelInd = document.getElementById('levelIndicator');
+            const difficultyLabel = document.getElementById('difficultyLabel');
+            const fullResetBtn = document.getElementById('fullResetBtn');
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            const soundToggle = document.getElementById('soundToggle');
+            const soundIcon = document.getElementById('soundIcon');
+            const pairsMatched = document.getElementById('pairsMatched');
+            const totalPairsSpan = document.getElementById('totalPairsSpan');
+            const toast = document.getElementById('toastMsg');
+            const levelDots = document.getElementById('levelDots');
+            const starRating = document.getElementById('starRating');
+            const dropdownToggle = document.getElementById('dropdownToggle');
+            const dropdownContent = document.getElementById('dropdownContent');
+            const selectedDifficultyLabel = document.getElementById('selectedDifficultyLabel');
+            const sidebarLevels = document.getElementById('sidebarLevels');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar');
+
+            // ----- Sound Effects -----
+            function playSound(type) {
+                if (!soundEnabled) return;
+                try {
+                    const ctx = new(window.AudioContext || window.webkitAudioContext)();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    gain.gain.value = 0.1;
+                    if (type === 'flip') {
+                        osc.frequency.value = 600;
+                        osc.type = 'sine';
+                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+                        osc.start(ctx.currentTime);
+                        osc.stop(ctx.currentTime + 0.1);
+                    } else if (type === 'match') {
+                        osc.frequency.value = 880;
+                        osc.type = 'sine';
+                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+                        osc.start(ctx.currentTime);
+                        osc.stop(ctx.currentTime + 0.2);
+                        setTimeout(() => {
+                            const osc2 = ctx.createOscillator();
+                            const gain2 = ctx.createGain();
+                            osc2.connect(gain2);
+                            gain2.connect(ctx.destination);
+                            osc2.frequency.value = 1100;
+                            osc2.type = 'sine';
+                            gain2.gain.value = 0.08;
+                            gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+                            osc2.start(ctx.currentTime);
+                            osc2.stop(ctx.currentTime + 0.15);
+                        }, 150);
+                    } else if (type === 'mismatch') {
+                        osc.frequency.value = 300;
+                        osc.type = 'sawtooth';
+                        gain.gain.value = 0.05;
+                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+                        osc.start(ctx.currentTime);
+                        osc.stop(ctx.currentTime + 0.15);
+                    } else if (type === 'complete') {
+                        [523, 659, 784, 1047].forEach((freq, i) => {
+                            setTimeout(() => {
+                                const o = ctx.createOscillator();
+                                const g = ctx.createGain();
+                                o.connect(g);
+                                g.connect(ctx.destination);
+                                o.frequency.value = freq;
+                                o.type = 'sine';
+                                g.gain.value = 0.08;
+                                g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+                                o.start(ctx.currentTime);
+                                o.stop(ctx.currentTime + 0.2);
+                            }, i * 120);
+                        });
+                    } else if (type === 'victory') {
+                        [523, 587, 659, 784, 880, 988, 1047].forEach((freq, i) => {
+                            setTimeout(() => {
+                                const o = ctx.createOscillator();
+                                const g = ctx.createGain();
+                                o.connect(g);
+                                g.connect(ctx.destination);
+                                o.frequency.value = freq;
+                                o.type = 'sine';
+                                g.gain.value = 0.08;
+                                g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+                                o.start(ctx.currentTime);
+                                o.stop(ctx.currentTime + 0.25);
+                            }, i * 100);
+                        });
+                    }
+                } catch (e) { /* silent */ }
+            }
+
+            function showToast(msg, dur = 1600) {
+                toast.textContent = msg;
+                toast.classList.add('show');
+                clearTimeout(toast._hide);
+                toast._hide = setTimeout(() => toast.classList.remove('show'), dur);
+            }
+
+            // ----- ICON LIBRARY -----
+            const iconSet = [
+                'fa-dragon', 'fa-cat', 'fa-dog', 'fa-fish', 'fa-crow', 'fa-hippo', 'fa-otter', 'fa-spider',
+                'fa-crown', 'fa-gem', 'fa-meteor', 'fa-moon', 'fa-sun', 'fa-cloud', 'fa-bolt', 'fa-snowflake',
+                'fa-heart', 'fa-star', 'fa-fire', 'fa-water', 'fa-leaf', 'fa-tree', 'fa-seedling', 'fa-feather',
+                'fa-guitar', 'fa-drum', 'fa-music', 'fa-headphones', 'fa-microphone', 'fa-cloud-moon',
+                'fa-car', 'fa-plane', 'fa-rocket', 'fa-ship', 'fa-submarine', 'fa-bicycle', 'fa-tractor',
+                'fa-robot', 'fa-gamepad', 'fa-dice', 'fa-puzzle-piece', 'fa-chess-queen', 'fa-chess-knight',
+                'fa-wand-sparkles', 'fa-hat-wizard', 'fa-skull', 'fa-ghost', 'fa-campground', 'fa-frog',
+                'fa-lion', 'fa-monkey', 'fa-paw', 'fa-rainbow', 'fa-feather-pointed', 'fa-umbrella',
+                'fa-mask', 'fa-hat-cowboy', 'fa-horse', 'fa-dove', 'fa-kiwi-bird', 'fa-pen-fancy'
+            ];
+
+            function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+            function generateDeck() {
+                const needed = levelConfigs[currentLevelIndex].pairs;
+                let pool = shuffle([...iconSet]).slice(0, needed);
+                let deck = shuffle([...pool, ...pool]);
+                return deck;
+            }
+
+            function updatePairCounter() { pairsMatched.textContent = matchedCount;
+                totalPairsSpan.textContent = totalPairs; }
+
+            function stopTimer() { if (timerInterval) { clearInterval(timerInterval);
+                    timerInterval = null; } }
+
+            function resetBoardState() { hasFlippedCard = false;
+                firstCard = null;
+                secondCard = null; }
+
+            function updateLevelDots() {
+                levelDots.innerHTML = '';
+                for (let i = 0; i < levelOrder.length; i++) {
+                    const dot = document.createElement('span');
+                    dot.className = 'level-dot';
+                    if (i === currentLevelIndex) dot.classList.add('active');
+                    else if (i < currentLevelIndex) dot.classList.add('done');
+                    levelDots.appendChild(dot);
+                }
+            }
+
+            function updateSidebar() {
+                sidebarLevels.innerHTML = '';
+                for (let i = 0; i < levelConfigs.length; i++) {
+                    const btn = document.createElement('button');
+                    btn.className = 'sidebar-btn';
+                    if (i === currentLevelIndex) btn.classList.add('active');
+                    const star = levelStars[i] ? '⭐'.repeat(levelStars[i]) : '☆';
+                    btn.innerHTML = `${i+1}. ${levelConfigs[i].icon} <span class="star-indicator">${star}</span>`;
+                    btn.addEventListener('click', () => goToLevel(i));
+                    sidebarLevels.appendChild(btn);
+                }
+            }
+
+            function calculateStars(moves, pairs) {
+                const optimalMoves = pairs * 2;
+                const ratio = moves / optimalMoves;
+                if (ratio <= 1.2) return 3;
+                if (ratio <= 1.8) return 2;
+                return 1;
+            }
+
+            function updateStarRating(stars) {
+                starRating.innerHTML = '';
+                for (let i = 0; i < 3; i++) {
+                    const star = document.createElement('i');
+                    star.className = i < stars ? 'fas fa-star filled' : 'fas fa-star empty';
+                    starRating.appendChild(star);
+                }
+            }
+
+            function buildBoard() {
+                board.innerHTML = '';
+                const cfg = levelConfigs[currentLevelIndex];
+                const deck = generateDeck();
+                totalPairs = cfg.pairs;
+                // Ensure we have enough cards for 6 columns (minimum 12 cards = 6 pairs)
+                while (totalPairs < 6) {
+                    totalPairs++;
+                }
+                matchedCount = 0;
+                moves = 0;
+                secondsElapsed = 0;
+                stopTimer();
+                timerInterval = null;
+                movesSpan.textContent = '0';
+                timeSpan.textContent = '0s';
+                updatePairCounter();
+                hasFlippedCard = false;
+                lockBoard = false;
+                firstCard = secondCard = null;
+                gameActive = true;
+
+                board.className = 'game-grid';
+                cardsArray = [];
+                const displayDeck = deck.slice(0, totalPairs * 2);
+                displayDeck.forEach((iconClass, idx) => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.dataset.idx = idx;
+                    card.dataset.icon = iconClass;
+                    const inner = document.createElement('div');
+                    inner.className = 'card-inner';
+                    inner.innerHTML =
+                        `<div class="card-front"><i class="fas ${iconClass}"></i></div><div class="card-back"><i class="fas fa-question-circle"></i></div>`;
+                    card.appendChild(inner);
+                    card.addEventListener('click', () => handleCardClick(card));
+                    board.appendChild(card);
+                    cardsArray.push(card);
+                });
+                levelInd.textContent = `${currentLevelIndex + 1}/${levelOrder.length}`;
+                updateLevelDots();
+                updateSidebar();
+            }
+
+            function startTimerIfNeeded() {
+                if (!timerInterval && gameActive && moves === 0) {
+                    timerInterval = setInterval(() => {
+                        if (gameActive) { secondsElapsed++;
+                            timeSpan.textContent = secondsElapsed + 's'; }
+                    }, 1000);
+                }
+            }
+
+            function handleCardClick(card) {
+                if (lockBoard || !gameActive) return;
+                if (card.classList.contains('matched') || card.classList.contains('flipped')) return;
+                startTimerIfNeeded();
+                playSound('flip');
+
+                if (!hasFlippedCard) {
+                    card.classList.add('flipped');
+                    hasFlippedCard = true;
+                    firstCard = card;
+                    return;
+                }
+                secondCard = card;
+                card.classList.add('flipped');
+                moves++;
+                movesSpan.textContent = moves;
+
+                const match = firstCard.dataset.icon === secondCard.dataset.icon;
+                if (match) {
+                    playSound('match');
+                    firstCard.classList.add('matched');
+                    secondCard.classList.add('matched');
+                    matchedCount++;
+                    updatePairCounter();
+                    resetBoardState();
+                    if (matchedCount === totalPairs) levelComplete();
+                } else {
+                    playSound('mismatch');
+                    lockBoard = true;
+                    setTimeout(() => {
+                        if (firstCard) firstCard.classList.remove('flipped');
+                        if (secondCard) secondCard.classList.remove('flipped');
+                        resetBoardState();
+                        lockBoard = false;
+                    }, 750);
+                }
+            }
+
+            function levelComplete() {
+                if (!gameActive) return;
+                gameActive = false;
+                stopTimer();
+                playSound('complete');
+
+                const stars = calculateStars(moves, totalPairs);
+                levelStars[currentLevelIndex] = stars;
+                updateStarRating(stars);
+
+                finalMoves.textContent = moves;
+                finalTime.textContent = secondsElapsed + 's';
+                const last = currentLevelIndex === levelOrder.length - 1;
+                if (last) {
+                    nextInfo.innerHTML = '🌟 Legendary! You\'ve dominated all 10 levels! 🌟<br>Claim your ultimate trophy!';
+                    nextBtn.innerHTML = '<i class="fas fa-crown mr-2"></i> Claim Victory';
+                    playSound('victory');
+                    createConfetti();
+                } else {
+                    const nextLevel = levelConfigs[currentLevelIndex + 1];
+                    nextInfo.innerHTML =
+                        `🎉 Amazing! Next: <strong>${nextLevel.icon} ${nextLevel.label}</strong> with <strong>${nextLevel.pairs} pairs</strong>! 🚀`;
+                    nextBtn.innerHTML = '<i class="fas fa-arrow-right mr-2"></i> Advance to Next Level';
+                }
+                winModal.classList.remove('hidden');
+                updateSidebar();
+            }
+
+            function createConfetti() {
+                const container = document.createElement('div');
+                container.className = 'confetti-container';
+                document.body.appendChild(container);
+                const colors = ['#fbbf24', '#ef4444', '#3b82f6', '#34d399', '#a855f7', '#ec4899', '#f97316'];
+                for (let i = 0; i < 80; i++) {
+                    const piece = document.createElement('div');
+                    piece.className = 'confetti-piece';
+                    piece.style.left = Math.random() * 100 + '%';
+                    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    piece.style.width = (Math.random() * 8 + 4) + 'px';
+                    piece.style.height = (Math.random() * 8 + 4) + 'px';
+                    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                    piece.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                    piece.style.animationDelay = (Math.random() * 2) + 's';
+                    container.appendChild(piece);
+                }
+                setTimeout(() => container.remove(), 5000);
+            }
+
+            function goToNextLevel() {
+                winModal.classList.add('hidden');
+                if (currentLevelIndex === levelOrder.length - 1) {
+                    victoryModal.classList.remove('hidden');
+                    createConfetti();
+                    playSound('victory');
+                    return;
+                }
+                currentLevelIndex++;
+                resetGameStateForNewLevel();
+                buildBoard();
+                showToast(`✨ ${levelConfigs[currentLevelIndex].icon} ${levelConfigs[currentLevelIndex].label}!`, 1600);
+            }
+
+            function resetGameStateForNewLevel() { stopTimer();
+                timerInterval = null;
+                hasFlippedCard = false;
+                lockBoard = false;
+                firstCard = null;
+                secondCard = null;
+                gameActive = true; }
+
+            function restartCurrentLevel() { stopTimer();
+                timerInterval = null;
+                hasFlippedCard = false;
+                lockBoard = false;
+                firstCard = secondCard = null;
+                gameActive = true;
+                buildBoard();
+                winModal.classList.add('hidden');
+                victoryModal.classList.add('hidden');
+                showToast('🔄 Level restarted!', 1200); }
+
+            function fullGameReset() {
+                currentLevelIndex = 0;
+                levelStars = [];
+                resetGameStateForNewLevel();
+                buildBoard();
+                victoryModal.classList.add('hidden');
+                winModal.classList.add('hidden');
+                showToast(`🌟 Fresh journey! Starting ${difficulties[currentDifficulty].label} Level 1 🌟`, 1600);
+            }
+
+            function changeDifficulty(diff) {
+                if (diff === currentDifficulty && currentLevelIndex === 0) {
+                    restartCurrentLevel();
+                    return;
+                }
+                currentDifficulty = diff;
+                levelConfigs = generateLevelConfigs(diff);
+                levelStars = [];
+                currentLevelIndex = 0;
+                updateDifficultyButtons(diff);
+                resetGameStateForNewLevel();
+                buildBoard();
+                winModal.classList.add('hidden');
+                victoryModal.classList.add('hidden');
+                showToast(`🎮 Switched to ${difficulties[diff].label} mode.`, 1500);
+                dropdownContent.classList.remove('show');
+            }
+
+            function goToLevel(lvlIndex) {
+                if (lvlIndex === currentLevelIndex) { restartCurrentLevel(); return; }
+                currentLevelIndex = lvlIndex;
+                resetGameStateForNewLevel();
+                buildBoard();
+                winModal.classList.add('hidden');
+                victoryModal.classList.add('hidden');
+                showToast(`📌 ${levelConfigs[lvlIndex].label}`, 1200);
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('open');
+                }
+            }
+
+            function updateDifficultyButtons(diff) {
+                const btns = dropdownContent.querySelectorAll('[data-diff]');
+                btns.forEach(b => {
+                    b.classList.remove('active-drop');
+                    if (b.dataset.diff === diff) b.classList.add('active-drop');
+                });
+                selectedDifficultyLabel.textContent = difficulties[diff].label;
+                difficultyLabel.textContent = difficulties[diff].label;
+            }
+
+            // ----- THEME (fixed) -----
+            function setTheme(isDark) {
+                if (isDark) {
+                    document.body.classList.add('dark-mode');
+                    themeIcon.className = 'fas fa-sun';
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    themeIcon.className = 'fas fa-moon';
+                }
+                localStorage.setItem('memoryTheme', isDark ? 'dark' : 'light');
+            }
+
+            function initTheme() {
+                const saved = localStorage.getItem('memoryTheme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const isDark = saved === 'dark' || (saved === null && prefersDark);
+                setTheme(isDark);
+            }
+
+            function toggleTheme() {
+                const isDark = !document.body.classList.contains('dark-mode');
+                setTheme(isDark);
+                showToast(isDark ? '🌙 Dark mode' : '☀️ Light mode', 1000);
+            }
+
+            function toggleSound() { soundEnabled = !soundEnabled;
+                soundIcon.className = soundEnabled ? 'fas fa-volume-up' : 'fas fa-volume-mute';
+                showToast(soundEnabled ? '🔊 Sound on' : '🔇 Sound off', 1000); }
+
+            // ----- Dropdown -----
+            dropdownToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdownContent.classList.toggle('show');
+            });
+            document.addEventListener('click', () => { dropdownContent.classList.remove('show'); });
+
+            // ----- Sidebar toggle -----
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+            });
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth <= 768) {
+                    if (!sidebar.contains(e.target) && e.target !== sidebarToggle) {
+                        sidebar.classList.remove('open');
+                    }
+                }
+            });
+
+            // ----- Event listeners -----
+            restartBtn.addEventListener('click', restartCurrentLevel);
+            nextBtn.addEventListener('click', goToNextLevel);
+            cancelBtn.addEventListener('click', () => winModal.classList.add('hidden'));
+            fullResetBtn.addEventListener('click', fullGameReset);
+            themeToggle.addEventListener('click', toggleTheme);
+            soundToggle.addEventListener('click', toggleSound);
+
+            dropdownContent.querySelectorAll('[data-diff]').forEach(b => {
+                b.addEventListener('click', () => changeDifficulty(b.dataset.diff));
+            });
+
+            // ----- Init -----
+            initTheme();
+            levelConfigs = generateLevelConfigs('easy');
+            updateDifficultyButtons('easy');
+            buildBoard();
+            updateStarRating(0);
+        })();
+    </script>
+</body>
+</html>

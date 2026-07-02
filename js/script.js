@@ -1,4 +1,4 @@
- <script>
+
         (function() {
             "use strict";
 
@@ -590,4 +590,4 @@
             buildBoard();
             updateStarRating(0);
         })();
-    </script>
+    

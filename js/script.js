@@ -1,4 +1,4 @@
-<script src="js/script.js">
+
 
         (function () {
             "use strict";
@@ -659,4 +659,3 @@
             updateStarRating(0);
         })();
 
-    </script>

@@ -1,4 +1,4 @@
-<script src="js/script.js">
+
 
 
         (function () {
@@ -661,4 +661,4 @@
         })();
 
 
-    </script>
+    

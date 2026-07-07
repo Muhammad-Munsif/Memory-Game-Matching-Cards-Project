@@ -1,7 +1,5 @@
 
 
-    <script src="js/script.js">
-
         (function () {
             "use strict";
 
@@ -454,7 +452,7 @@
 
          
 
-    </script>
+
 
 
 
